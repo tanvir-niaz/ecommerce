@@ -7,9 +7,10 @@ import { Cart } from './entities/cart.entity';
 import { UserService } from 'src/user/user.service';
 import { UserModule } from 'src/user/user.module';
 import { ProductModule } from 'src/product/product.module';
+import { Product } from 'src/product/entities/product.entity';
 
 @Module({
-  imports:[JwtModule,TypeOrmModule.forFeature([Cart]),UserModule],
+  imports:[JwtModule,TypeOrmModule.forFeature([Cart,Product]),UserModule,ProductModule],
   controllers: [CartController],
   providers: [CartService],
 })
