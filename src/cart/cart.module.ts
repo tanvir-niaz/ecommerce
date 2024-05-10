@@ -6,6 +6,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Cart } from './entities/cart.entity';
 import { UserService } from 'src/user/user.service';
 import { UserModule } from 'src/user/user.module';
+import { ProductModule } from 'src/product/product.module';
 
 @Module({
   imports:[JwtModule,TypeOrmModule.forFeature([Cart]),UserModule],

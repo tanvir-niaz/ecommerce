@@ -11,7 +11,7 @@ export class Cart {
     product_id:number;
 
     @Column()
-    quantity:number;
+    product_quantity:number;
 
     @Column()
     user_id:number;

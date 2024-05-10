@@ -55,6 +55,6 @@ export class JwtAuthGuard implements CanActivate {
     // Attach the user object to the request for further processing if needed
     request.user = user;
 
-    return true;
+    return request.user;
   }
 }
