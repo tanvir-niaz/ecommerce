@@ -5,6 +5,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
 import { ProductModule } from './product/product.module';
 import { CartModule } from './cart/cart.module';
+import { OrderModule } from './order/order.module';
 
 
 @Module({
@@ -22,12 +23,14 @@ import { CartModule } from './cart/cart.module';
         password: configService.get('DB_PASSWORD'),
         database: configService.get('DB_DATABASE'),
         entities: [__dirname+'/**/*.entity{.ts,.js}'], // Add your entities here
-        synchronize: configService.get<boolean>('DB_SYNC'), // Synchronize the schema with the database, only for development
+        synchronize: configService.get<boolean>('DB_SYNC'),
+        logging:configService.get('DB_LOGGING') // Synchronize the schema with the database, only for development
       }),
       inject: [ConfigService],
     }),
     ProductModule,
-    CartModule
+    CartModule,
+    OrderModule
      // You need to import other modules if you have any
   ],
   controllers: [], // Add your controllers here

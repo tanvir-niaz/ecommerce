@@ -6,6 +6,7 @@ import { Cart } from './entities/cart.entity';
 import { Repository } from 'typeorm';
 import { Product } from 'src/product/entities/product.entity';
 import { STATUS_CODES } from 'http';
+import { error } from 'console';
 
 @Injectable()
 export class CartService {
@@ -24,22 +25,37 @@ export class CartService {
 
     if (existingCartItems && existingCartItems.length > 0) {
         const totalQuantity = existingCartItems.reduce((total, item) => total + item.product_quantity, 0);
-        const newQuantity = totalQuantity + createCartDto.quantity;
-        existingCartItems[0].product_quantity = newQuantity;     
+        const newQuantity = totalQuantity + createCartDto.product_quantity;
+
+        existingCartItems[0].product_quantity = newQuantity;
+        //handle the stock quantity here 
+        if(newQuantity>product.stockQuantity){
+          return new error("Not enough stock ");
+        }
         cart = await this.cartRepository.save(existingCartItems[0]);
     } else {
         
         cart = new Cart();
         cart.user_id = user_id;
         cart.product_id = createCartDto.product_id;
-        cart.product_quantity = createCartDto.quantity;
+        cart.product_quantity = createCartDto.product_quantity;
         cart = await this.cartRepository.save(cart);
     }
+
     return cart;
   }
 
-  findAll() {
-    return `This action returns all cart`;
+  async findAll(user_id: number) {
+    const allCartItems: Cart[] = await this.cartRepository.find({ where: { user_id } });
+    let totalPrice = 0;
+
+    for (const cartItem of allCartItems) {
+      const product = await this.productRepository.findOne({ where: { id: cartItem.product_id } });
+      if (product) {
+        totalPrice += product.price * cartItem.product_quantity;
+      }
+    }
+    return { cartItems: allCartItems, totalPrice };
   }
 
   findOne(user_id: number) {
@@ -52,7 +68,7 @@ export class CartService {
       throw new NotFoundException(`Cart with ID ${id} not found`);
     }
 
-    cart.product_quantity = updateCartDto.quantity; // Assuming quantity is the field to be updated
+    cart.product_quantity = updateCartDto.product_quantity; 
     return this.cartRepository.save(cart);
   }
 

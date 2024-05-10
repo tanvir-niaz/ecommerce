@@ -21,9 +21,9 @@ export class CartController {
   }
  
   @Get()
-  // @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
   findAll(@Req() req:any):any {
-    
+    return this.cartService.findAll(req.user.id);
   }
 
   @Get(':id')
