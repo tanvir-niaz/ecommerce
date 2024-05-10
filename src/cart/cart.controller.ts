@@ -15,14 +15,15 @@ export class CartController {
   
   @Post()
   @UseGuards(JwtAuthGuard)
-  create(@Body() createCartDto: CreateCartDto) {
-    return this.cartService.create(createCartDto);
+  create(@Body() createCartDto: CreateCartDto, @Req() req:any) {
+    console.log(req.user);
+    return this.cartService.create(createCartDto,req.user.id);
   }
  
   @Get()
-  // @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
   findAll(@Req() req:any):any {
-    
+    return this.cartService.findAll(req.user.id);
   }
 
   @Get(':id')

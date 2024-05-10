@@ -10,7 +10,7 @@ import * as bcrypt from 'bcrypt';
 export class LocalStrategy extends PassportStrategy(Strategy){
     constructor(private readonly userService:UserService){
         super({
-            usernameField: 'email' // Specify email as the username field
+            usernameField: 'email' 
         });
         
     }
@@ -19,20 +19,15 @@ export class LocalStrategy extends PassportStrategy(Strategy){
         const user: User = await this.userService.getUserByUserEmail(email);
 
         console.log(user);
-        // If user doesn't exist, throw UnauthorizedException
+        
         if (!user) {
           throw new UnauthorizedException('Invalid email');
         }
-    
-        // Compare password asynchronously
         const isPasswordValid = await bcrypt.compare(password, user.password);
     
-        // If password is invalid, throw UnauthorizedException
         if (!isPasswordValid) {
           throw new UnauthorizedException('Invalid password');
         }
-    
-        // If email and password are valid, return user
         return user;
       }
 }
