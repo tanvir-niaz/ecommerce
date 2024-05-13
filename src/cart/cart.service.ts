@@ -28,7 +28,7 @@ export class CartService {
         const newQuantity = totalQuantity + createCartDto.product_quantity;
 
         existingCartItems[0].product_quantity = newQuantity;
-        //handle the stock quantity here 
+        
         if(newQuantity>product.stockQuantity){
           return new error("Not enough stock ");
         }
@@ -67,7 +67,7 @@ export class CartService {
     if (!cart) {
       throw new NotFoundException(`Cart with ID ${id} not found`);
     }
-
+    // console.log(cart);
     cart.product_quantity = updateCartDto.product_quantity; 
     return this.cartRepository.save(cart);
   }

@@ -6,10 +6,11 @@ import { AuthModule } from './auth/auth.module';
 import { ProductModule } from './product/product.module';
 import { CartModule } from './cart/cart.module';
 import { OrderModule } from './order/order.module';
+import { JwtModule } from '@nestjs/jwt';
 
 
 @Module({
-  imports: [UserModule,AuthModule,
+  imports: [UserModule,AuthModule,JwtModule,
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule.forRoot({
         isGlobal: true,

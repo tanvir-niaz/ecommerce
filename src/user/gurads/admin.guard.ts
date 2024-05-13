@@ -5,8 +5,10 @@ import { JwtService } from '@nestjs/jwt';
 import { UserService } from '../../user/user.service';
 import { ConfigService } from '@nestjs/config';
 
+
+
 @Injectable()
-export class JwtAuthGuard implements CanActivate {
+export class JwtAdminAuthGuard implements CanActivate {
   constructor(
     private readonly jwtService: JwtService,
     private readonly userService: UserService,
@@ -42,9 +44,10 @@ export class JwtAuthGuard implements CanActivate {
     ) {
       throw new UnauthorizedException('Token data does not match user data');
     }
+    if(decodedToken.roles=="admin"){
+        return true;
+    }
 
-    request.user = user;
-
-    return request.user;
+    return false;
   }
 }

@@ -16,20 +16,19 @@ export class OrderService {
 
 
 async create(createOrderDto: CreateOrderDto, userId: number) {
-  // Find cart items for the user
   const userCartItems: Cart[] = await this.cartRepository.find({ where: { user_id: userId } });
 
-  // Save cart items as orders
+
   const orders = await this.orderRepository.save(userCartItems.map(cartItem => {
     const order = new Order();
     order.user_id = cartItem.user_id;
     order.product_id = cartItem.product_id;
     order.cart_id=cartItem.id;
-    // order.product_quantity = cartItem.product_quantity;
+    
     return order;
   }));
 
-  // Reduce stock quantity of products
+
   for (const cartItem of userCartItems) {
     const product = await this.productRepository.findOne({where:{id:cartItem.product_id}});
     if (product) {
@@ -38,7 +37,6 @@ async create(createOrderDto: CreateOrderDto, userId: number) {
     }
   }
 
-  // Remove cart items
   await this.cartRepository.remove(userCartItems);
 
   return orders;

@@ -29,6 +29,7 @@ export class UserService {
     const saltOrRounds = 10;
     const hashPassword = await bcrypt.hash(createUserDto.password, saltOrRounds);
     user.password = hashPassword;
+    user.roles=createUserDto.roles;
 
     // Save the user to the database
     const { name, email } = await this.userRepositoty.save(user);
@@ -54,6 +55,6 @@ export class UserService {
   }
 
   remove(id: number) {
-    return `This action removes a #${id} user`;
+    return this.userRepositoty.delete(id);
   }
 }
