@@ -7,25 +7,49 @@ import { Repository } from 'typeorm';
 
 @Injectable()
 export class ProductService {
-  constructor(@InjectRepository(Product) private readonly productRepositoty:Repository<Product>){
+  constructor(@InjectRepository(Product) private readonly productRepository:Repository<Product>){
 
   }
   async create(createProductDto: CreateProductDto) {
     let product:CreateProductDto=new Product();
-    product = this.productRepositoty.create(createProductDto);;
-    return this.productRepositoty.save(product);
+    product = this.productRepository.create(createProductDto);;
+    return this.productRepository.save(product);
   }
 
-  findAll() {
-    return this.productRepositoty.find();
+  async findAll(page:number,limit:number,filters:any):Promise<[Product[],number]> {
+    const queryBuilder = this.productRepository.createQueryBuilder('product');
+
+    if (filters) {
+      if (filters.category) {
+        queryBuilder.andWhere('product.category = :category', { category: filters.category },);
+      }
+      if (filters.minPrice) {
+        queryBuilder.andWhere('product.price >= :minPrice', { minPrice: filters.minPrice });
+      }
+      if (filters.maxPrice) {
+        queryBuilder.andWhere('product.price <= :maxPrice', { maxPrice: filters.maxPrice });
+      }
+      if (filters.searchName) {
+        queryBuilder.andWhere('product.name ILIKE :searchName', { searchName: `%${filters.searchName}%` });
+      }
+      if (filters.searchDescription) {
+        queryBuilder.andWhere('product.description ILIKE :searchDescription', { searchDescription: `%${filters.searchDescription}%` });
+      }
+    }
+
+    queryBuilder.offset((page - 1) * limit).limit(limit);
+
+    const [products, total] = await queryBuilder.getManyAndCount();
+    return [products, total];
+
   }
 
   findOne(id: number) {
-    return this.productRepositoty.find({where:{id}});
+    return this.productRepository.find({where:{id}});
   }
 
   async update(id: number, updateProductDto: UpdateProductDto) {
-    let product = await this.productRepositoty.findOne({ where: { id } });
+    let product = await this.productRepository.findOne({ where: { id } });
   
     if (!product) {
       throw new NotFoundException(`Product with ID ${id} not found`);
@@ -34,10 +58,10 @@ export class ProductService {
     // Update product properties
     product = Object.assign(product, updateProductDto);
   
-    return this.productRepositoty.save(product);
+    return this.productRepository.save(product);
   }
 
   remove(id: number) {
-    return this.productRepositoty.delete(id);
+    return this.productRepository.delete(id);
   }
 }

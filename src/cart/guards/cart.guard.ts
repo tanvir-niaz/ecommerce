@@ -42,9 +42,11 @@ export class JwtAuthGuard implements CanActivate {
     ) {
       throw new UnauthorizedException('Token data does not match user data');
     }
-
+    
     request.user = user;
-
+    if(decodedToken.roles=="admin" ){
+      return request.user;
+    }
     return request.user;
   }
 }

@@ -25,7 +25,7 @@ import { JwtModule } from '@nestjs/jwt';
         database: configService.get('DB_DATABASE'),
         entities: [__dirname+'/**/*.entity{.ts,.js}'], // Add your entities here
         synchronize: configService.get<boolean>('DB_SYNC'),
-        logging:configService.get('DB_LOGGING') // Synchronize the schema with the database, only for development
+        logging:true// Synchronize the schema with the database, only for development
       }),
       inject: [ConfigService],
     }),
