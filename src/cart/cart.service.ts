@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateCartDto } from './dto/create-cart.dto';
 import { UpdateCartDto } from './dto/update-cart.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -10,10 +10,14 @@ import { error } from 'console';
 
 @Injectable()
 export class CartService {
+
   constructor(@InjectRepository(Cart) private readonly cartRepository:Repository<Cart>,@InjectRepository(Product) private readonly productRepository: Repository<Product> ){}
+
+
+
   async create(createCartDto: CreateCartDto,user_id:number) {
     const product =await this.productRepository.findOne({ where: { id: createCartDto.product_id } });
-    console.log(product);
+    // console.log(product);
     if (!product) {
       
       throw new HttpException(`Product with ID ${createCartDto.product_id} not found`, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -25,12 +29,12 @@ export class CartService {
 
     if (existingCartItems && existingCartItems.length > 0) {
         const totalQuantity = existingCartItems.reduce((total, item) => total + item.product_quantity, 0);
-        const newQuantity = totalQuantity + createCartDto.product_quantity;
+        const newQuantity  = totalQuantity + createCartDto.product_quantity;
 
         existingCartItems[0].product_quantity = newQuantity;
-        //handle the stock quantity here 
+        
         if(newQuantity>product.stockQuantity){
-          return new error("Not enough stock ");
+          throw new BadRequestException('Not enough stock');
         }
         cart = await this.cartRepository.save(existingCartItems[0]);
     } else {
@@ -39,6 +43,10 @@ export class CartService {
         cart.user_id = user_id;
         cart.product_id = createCartDto.product_id;
         cart.product_quantity = createCartDto.product_quantity;
+        const product =await this.productRepository.findOne({ where: { id: createCartDto.product_id } });
+        if(product.stockQuantity<cart.product_quantity){
+          return new BadRequestException("Not enough Stock")
+        }
         cart = await this.cartRepository.save(cart);
     }
 
@@ -58,6 +66,10 @@ export class CartService {
     return { cartItems: allCartItems, totalPrice };
   }
 
+  async findAllCart(){
+    return this.cartRepository.find();
+  }
+
   findOne(user_id: number) {
     return this.cartRepository.find({where:{user_id}});
   }
@@ -67,7 +79,7 @@ export class CartService {
     if (!cart) {
       throw new NotFoundException(`Cart with ID ${id} not found`);
     }
-
+    // console.log(cart);
     cart.product_quantity = updateCartDto.product_quantity; 
     return this.cartRepository.save(cart);
   }

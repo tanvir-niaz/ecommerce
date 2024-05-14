@@ -6,10 +6,11 @@ import { AuthModule } from './auth/auth.module';
 import { ProductModule } from './product/product.module';
 import { CartModule } from './cart/cart.module';
 import { OrderModule } from './order/order.module';
+import { JwtModule } from '@nestjs/jwt';
 
 
 @Module({
-  imports: [UserModule,AuthModule,
+  imports: [UserModule,AuthModule,JwtModule,
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule.forRoot({
         isGlobal: true,
@@ -24,7 +25,7 @@ import { OrderModule } from './order/order.module';
         database: configService.get('DB_DATABASE'),
         entities: [__dirname+'/**/*.entity{.ts,.js}'], // Add your entities here
         synchronize: configService.get<boolean>('DB_SYNC'),
-        logging:configService.get('DB_LOGGING') // Synchronize the schema with the database, only for development
+        logging:true// Synchronize the schema with the database, only for development
       }),
       inject: [ConfigService],
     }),

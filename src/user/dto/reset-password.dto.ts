@@ -2,23 +2,18 @@ import { IsNotEmpty, IsString } from "class-validator";
 
 
 
-export class CreateUserDto {
+export class ResetPasswordDto {
     
     @IsNotEmpty()
     @IsString()
-    name:string;
-
-    @IsNotEmpty()
-    @IsString()
-    email:string;
-
+    token:string;
 
     @IsNotEmpty()
     @IsString()
     password:string;
 
 
+    @IsNotEmpty()
     @IsString()
-    roles:string;
-   
+    confirm_password:string;
 }
