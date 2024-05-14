@@ -26,8 +26,13 @@ export class CartController {
   findAll(@Req() req:any):any {
     return this.cartService.findAll(req.user.id);
   }
-
   @Get('/all')
+  @UseGuards(JwtAdminAuthGuard)
+  findAllCart(@Req() req:any):any {
+    return this.cartService.findAllCart();
+  }
+
+  @Get('/:id')
   @UseGuards(JwtAdminAuthGuard)
   findOne(@Param('id') id: string,@Req()req:any) {
     return this.cartService.findOne(+id);

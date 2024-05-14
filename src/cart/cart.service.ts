@@ -66,6 +66,10 @@ export class CartService {
     return { cartItems: allCartItems, totalPrice };
   }
 
+  async findAllCart(){
+    return this.cartRepository.find();
+  }
+
   findOne(user_id: number) {
     return this.cartRepository.find({where:{user_id}});
   }
