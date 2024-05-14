@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { Repository } from 'typeorm';
@@ -42,7 +42,14 @@ export class UserService {
     return this.userRepositoty.find();
   }
 
-  findOne(id: number) {
+  async findOne(id: number): Promise<User | null> {
+    const user: User | null = await this.userRepositoty.findOne({ where: { id } });
+    if(!user){
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+      
+    }
     return this.userRepositoty.findOne({where:{id}});
   }
 
@@ -83,7 +90,7 @@ export class UserService {
       throw new BadRequestException("Passwords dont match");
     }
     if(userByToken){
-      const saltOrRounds=Number(this.configService.get<number>("saltOrRounds"))
+      const saltOrRounds=Number(this.configService.get<number>("saltOrRounds"));
       const hashPassword = await bcrypt.hash(resetPasswordDto.password, saltOrRounds);
       userByToken.password=hashPassword;
       userByToken.token="";
