@@ -15,7 +15,7 @@ export class CartService {
 
 
 
-  async create(createCartDto: CreateCartDto,user_id:number) {
+  async createCart(createCartDto: CreateCartDto,user_id:number) {
     const product =await this.productRepository.findOne({ where: { id: createCartDto.product_id } });
     // console.log(product);
     if (!product) {
@@ -54,7 +54,7 @@ export class CartService {
   }
 
   async findAll(user_id: number) {
-    const allCartItems: Cart[] = await this.cartRepository.find({ where: { user_id } });
+    const allCartItems: any = await this.cartRepository.find({ where: { user_id } });
     let totalPrice = 0;
 
     for (const cartItem of allCartItems) {
@@ -62,6 +62,9 @@ export class CartService {
       if (product) {
         totalPrice += product.price * cartItem.product_quantity;
       }
+      cartItem.product_name = product.name;
+      cartItem.product_description = product.description;
+      cartItem.product_price = product.price;
     }
     return { cartItems: allCartItems, totalPrice };
   }
@@ -74,8 +77,12 @@ export class CartService {
     return this.cartRepository.find({where:{user_id}});
   }
 
-  async update(id: number, updateCartDto: UpdateCartDto) {
+  async updateOrder(id: number, updateCartDto: UpdateCartDto) {
     const cart = await this.cartRepository.findOne({where:{id}});
+    const product=await this.productRepository.findOne({where:{id:cart.product_id}});
+    if(product.stockQuantity<updateCartDto.product_quantity){
+      throw new BadRequestException("Not enough stock");
+    }
     if (!cart) {
       throw new NotFoundException(`Cart with ID ${id} not found`);
     }

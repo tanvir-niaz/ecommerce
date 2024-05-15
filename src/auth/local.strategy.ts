@@ -18,7 +18,7 @@ export class LocalStrategy extends PassportStrategy(Strategy){
         
         const user: User = await this.userService.getUserByUserEmail(email);
 
-        console.log(user);
+        // console.log(user);
         
         if (!user) {
           throw new UnauthorizedException('Invalid email');
