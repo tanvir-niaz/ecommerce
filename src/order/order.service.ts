@@ -46,8 +46,8 @@ async create(createOrderDto: CreateOrderDto, userId: number) {
     return `This action returns all order`;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} order`;
+  findOrdersByUserId(id: number) {
+    return this.orderRepository.find({where:{user_id:id}});
   }
 
   update(id: number, updateOrderDto: UpdateOrderDto) {

@@ -18,7 +18,7 @@ export class CartController {
   @UseGuards(JwtAuthGuard)
   create(@Body() createCartDto: CreateCartDto, @Req() req:any) {
     console.log(req.user);
-    return this.cartService.create(createCartDto,req.user.id);
+    return this.cartService.createCart(createCartDto,req.user.id);
   }
  
   @Get()
@@ -38,10 +38,10 @@ export class CartController {
     return this.cartService.findOne(id);
   }
 
-  @Patch(':id')
+  @Patch(':orderId')
   @UseGuards(JwtAuthGuard)
-  update(@Param('id',ParseIntPipe) id: number, @Body() updateCartDto: UpdateCartDto) {
-    return this.cartService.update(id, updateCartDto);
+  update(@Param('orderId',ParseIntPipe) id: number, @Body() updateCartDto: UpdateCartDto) {
+    return this.cartService.updateOrder(id, updateCartDto);
   }
 
   @Delete(':id')

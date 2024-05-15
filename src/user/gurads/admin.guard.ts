@@ -4,50 +4,27 @@ import { JwtService } from '@nestjs/jwt';
 
 import { UserService } from '../../user/user.service';
 import { ConfigService } from '@nestjs/config';
+import { JwtAuthGuard } from 'src/cart/guards/cart.guard';
+import { Reflector } from '@nestjs/core';
 
 
 
 @Injectable()
-export class JwtAdminAuthGuard implements CanActivate {
-  constructor(
-    private readonly jwtService: JwtService,
-    private readonly userService: UserService,
-    private readonly configService: ConfigService,
-     
-  ) {}
-
+export class JwtAdminAuthGuard extends JwtAuthGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
+    //perform the JWT authentication check
+    const isJwtAuthValid = await super.canActivate(context);
+    if (!isJwtAuthValid) {
+      return false;
+    }
+
     const request = context.switchToHttp().getRequest();
-    const token = request.headers.authorization;
-    if (!token || !token.startsWith('Bearer ')) {
-      throw new UnauthorizedException('Bearer token not provided');
-    }
-    
-    const tokenWithoutBearer = token.slice(7);
-    let decodedToken: any;
-    try {
-      decodedToken = this.jwtService.verify(tokenWithoutBearer,{secret:this.configService.get<string>('secret_key')});
-    } catch (error) {
-      throw new UnauthorizedException('Invalid token');
+    const user = request.user; 
+
+    if (user.roles !== 'admin') {
+      throw new UnauthorizedException('Unauthorized access: Admin role required');
     }
 
-    const userId = decodedToken.id;
-    
-    const user = await this.userService.findOne(userId);
-    if (!user) {
-      throw new UnauthorizedException('User not found');
-    }
-    if (
-      decodedToken.name !== user.name ||
-      decodedToken.email !== user.email ||
-      decodedToken.password!==user.password
-    ) {
-      throw new UnauthorizedException('Token data does not match user data');
-    }
-    if(decodedToken.roles=="admin"){
-        return true;
-    }
-
-    return false;
+    return true;
   }
 }
