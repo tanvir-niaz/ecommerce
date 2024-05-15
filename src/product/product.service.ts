@@ -10,13 +10,13 @@ export class ProductService {
   constructor(@InjectRepository(Product) private readonly productRepository:Repository<Product>){
 
   }
-  async create(createProductDto: CreateProductDto) {
+  async createProduct(createProductDto: CreateProductDto) {
     let product:CreateProductDto=new Product();
     product = this.productRepository.create(createProductDto);;
     return this.productRepository.save(product);
   }
 
-  async findAll(page:number,limit:number,filters:any):Promise<[Product[],number]> {
+  async findAllProducts(page:number,limit:number,filters:any):Promise<[Product[],number]> {
     const queryBuilder = this.productRepository.createQueryBuilder('product');
 
     if (filters) {
@@ -44,11 +44,11 @@ export class ProductService {
 
   }
 
-  findOne(id: number) {
+  findOneProduct(id: number) {
     return this.productRepository.find({where:{id}});
   }
 
-  async update(id: number, updateProductDto: UpdateProductDto) {
+  async updateProductById(id: number, updateProductDto: UpdateProductDto) {
     let product = await this.productRepository.findOne({ where: { id } });
   
     if (!product) {

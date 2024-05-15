@@ -2,8 +2,6 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, Req, UnauthorizedExc
 import { CartService } from './cart.service';
 import { CreateCartDto } from './dto/create-cart.dto';
 import { UpdateCartDto } from './dto/update-cart.dto';
-import { JwtStrategy } from 'src/auth/jwt.strategy';
-import { JwtService } from '@nestjs/jwt';
 import { JwtAuthGuard } from './guards/cart.guard';
 import { JwtAdminAuthGuard } from 'src/user/gurads/admin.guard';
 
@@ -32,21 +30,21 @@ export class CartController {
     return this.cartService.findAllCart();
   }
 
-  @Get('/:id')
+  @Get('/:userId')
   @UseGuards(JwtAdminAuthGuard)
-  findOne(@Param('id',ParseIntPipe) id: number,@Req()req:any) {
-    return this.cartService.findOne(id);
+  findOne(@Param('userId',ParseIntPipe) userId: number,@Req()req:any) {
+    return this.cartService.findCartByUserId(userId);
   }
 
-  @Patch(':orderId')
+  @Patch(':cartId')
   @UseGuards(JwtAuthGuard)
-  update(@Param('orderId',ParseIntPipe) id: number, @Body() updateCartDto: UpdateCartDto) {
-    return this.cartService.updateOrder(id, updateCartDto);
+  update(@Param('cartId',ParseIntPipe) cartId: number, @Body() updateCartDto: UpdateCartDto) {
+    return this.cartService.updateCart(cartId, updateCartDto);
   }
 
-  @Delete(':id')
+  @Delete(':CartId')
   @UseGuards(JwtAuthGuard)
-  remove(@Param('id',ParseIntPipe) id: number) {
-    return this.cartService.remove(id);
+  remove(@Param('CartId',ParseIntPipe) CartId: number) {
+    return this.cartService.removeCartById(CartId);
   }
 }

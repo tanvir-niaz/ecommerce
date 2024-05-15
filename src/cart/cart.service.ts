@@ -56,6 +56,12 @@ export class CartService {
   async findAll(user_id: number) {
     const allCartItems: any = await this.cartRepository.find({ where: { user_id } });
     let totalPrice = 0;
+    // const users = await allCartItems
+    // .getRepository(Cart)
+    // .createQueryBuilder("cart")
+    // .leftJoinAndSelect("cart.product_id", "product")
+    // .getMany()
+    // console.log(users);
 
     for (const cartItem of allCartItems) {
       const product = await this.productRepository.findOne({ where: { id: cartItem.product_id } });
@@ -73,11 +79,11 @@ export class CartService {
     return this.cartRepository.find();
   }
 
-  findOne(user_id: number) {
+  findCartByUserId(user_id: number) {
     return this.cartRepository.find({where:{user_id}});
   }
 
-  async updateOrder(id: number, updateCartDto: UpdateCartDto) {
+  async updateCart(id: number, updateCartDto: UpdateCartDto) {
     const cart = await this.cartRepository.findOne({where:{id}});
     const product=await this.productRepository.findOne({where:{id:cart.product_id}});
     if(product.stockQuantity<updateCartDto.product_quantity){
@@ -91,7 +97,7 @@ export class CartService {
     return this.cartRepository.save(cart);
   }
 
-  remove(id: number) {
+  removeCartById(id: number) {
     return this.cartRepository.delete(id);
   }
 }

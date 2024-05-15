@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { Repository } from 'typeorm';
@@ -16,12 +16,13 @@ export class UserService {
    constructor(@InjectRepository(User) private readonly userRepositoty:Repository<User>,private mailerService:MailerService,private readonly configService:ConfigService){
 
    }
-   async create(createUserDto: CreateUserDto) {
+   async createUser(createUserDto: CreateUserDto) {
     const existingUser = await this.userRepositoty.findOne({ where:{email: createUserDto.email} });
 
     if (existingUser) {
         // throw new Error('Duplicate email found');
-        return { message: 'Duplicate email found' };
+        // return { message: 'Duplicate email found' ,status:400};
+        throw new ConflictException("Duplicate email found")
     }
 
     const user:CreateUserDto = new User();
@@ -32,7 +33,6 @@ export class UserService {
     user.password = hashPassword;
     user.roles=createUserDto.roles;
 
-    // Save the user to the database
     const { name, email } = await this.userRepositoty.save(user);
     return { name, email };
 }

@@ -17,13 +17,13 @@ export class OrderController {
 
   @Get()
   @UseGuards(JwtAuthGuard)
-  findAll() {
-    return this.orderService.findAll();
+  findAll(@Req() req:any) {
+    return this.orderService.findAll(req.user_id);
   }
 
   @Get(':userId')
-  findOne(@Param('userId',ParseIntPipe) id: number) {
-    return this.orderService.findOrdersByUserId(id);
+  findOne(@Param('userId',ParseIntPipe) userId: number) {
+    return this.orderService.findOrdersByUserId(userId);
   }
 
   @Patch(':id')

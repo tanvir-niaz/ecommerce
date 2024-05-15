@@ -7,5 +7,6 @@ export class CreateCartDto {
 
     @IsNotEmpty()
     product_quantity:number;
+    
 
 }
