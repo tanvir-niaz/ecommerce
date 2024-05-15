@@ -12,29 +12,29 @@ export class ProductController {
   @Post()
   @UseGuards(JwtAdminAuthGuard)
   create(@Body() createProductDto: CreateProductDto) {
-    return this.productService.create(createProductDto);
+    return this.productService.createProduct(createProductDto);
   }
 
   @Get()
   async findAll(@Query('page')page=1,@Query('limit')limit=10,@Query()filters:any):Promise<{data:Product[],total:number}> {
-    const [products,total]= await this.productService.findAll(page,limit,filters);
+    const [products,total]= await this.productService.findAllProducts(page,limit,filters);
     return {data:products,total};
   }
   //get by product id
-  @Get(':id')
-  findOne(@Param('id',ParseIntPipe) id: number) {
-    return this.productService.findOne(id);
+  @Get(':productId')
+  findOne(@Param('productId',ParseIntPipe) productId: number) {
+    return this.productService.findOneProduct(productId);
   }
 
-  @Patch(':id')
+  @Patch(':productId')
   @UseGuards(JwtAdminAuthGuard)
-  update(@Param('id',ParseIntPipe) id: number, @Body() updateProductDto: UpdateProductDto) {
-    return this.productService.update(id, updateProductDto);
+  update(@Param('productId',ParseIntPipe) productId: number, @Body() updateProductDto: UpdateProductDto) {
+    return this.productService.updateProductById(productId, updateProductDto);
   }
 
-  @Delete(':id')
+  @Delete(':productId')
   @UseGuards(JwtAdminAuthGuard)
-  remove(@Param('id',ParseIntPipe) id: number) {
-    return this.productService.remove(id);
+  remove(@Param('productId',ParseIntPipe) productId: number) {
+    return this.productService.remove(productId);
   }
 }

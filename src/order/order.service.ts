@@ -42,8 +42,8 @@ async create(createOrderDto: CreateOrderDto, userId: number) {
   return orders;
 }
 
-  findAll() {
-    return `This action returns all order`;
+  findAll(userId:number) {
+    return this.orderRepository.find({});
   }
 
   findOrdersByUserId(id: number) {

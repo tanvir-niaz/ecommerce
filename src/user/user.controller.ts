@@ -14,17 +14,18 @@ export class UserController {
 
   @Post("/signup")
   create(@Body() createUserDto: CreateUserDto) {
-    return this.userService.create(createUserDto);
+    return this.userService.createUser(createUserDto);
   }
 
   @Post("/login")
   @UseGuards(AuthGuard("local"))
-  login(@Request() req) {
+  login(@Request() req:any) {
     console.log(req.user);
     return this.authService.generateToken(req.user);
   }
+  
   @Post("/forgot")
-  async forgotPassword(@Body('email')email:string){
+  async forgotPassword(@Body('email') email:string){
     return this.userService.passwordRecovery(email);
   }
 
@@ -40,22 +41,22 @@ export class UserController {
     return this.userService.findAll();
   }
 
-  @Get(':id')
+  @Get(':userId')
   @UseGuards(JwtAdminAuthGuard)
-  async findOne(@Param('id',ParseIntPipe) id: number) {
+  async findOne(@Param('userId',ParseIntPipe) userId: number) {
     
-    return this.userService.findOne(id);
+    return this.userService.findOne(userId);
   }
 
-  @Patch(':id')
+  @Patch(':userId')
   @UseGuards(JwtAdminAuthGuard)
-  update(@Param('id',ParseIntPipe) id: number, @Body() updateUserDto: UpdateUserDto) {
-    return this.userService.update(id, updateUserDto);
+  update(@Param('userId',ParseIntPipe) userId: number, @Body() updateUserDto: UpdateUserDto) {
+    return this.userService.update(userId, updateUserDto);
   }
 
-  @Delete(':id')
+  @Delete(':userId')
   @UseGuards(JwtAdminAuthGuard)
-  remove(@Param('id',ParseIntPipe) id: number) {
-    return this.userService.remove(id);
+  remove(@Param('userId',ParseIntPipe) userId: number) {
+    return this.userService.remove(userId);
   }
 }
