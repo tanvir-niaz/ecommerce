@@ -9,9 +9,10 @@ import { UserModule } from 'src/user/user.module';
 import { ProductModule } from 'src/product/product.module';
 import { Product } from 'src/product/entities/product.entity';
 import { JwtAuthGuard } from './guards/cart.guard';
+import { CartItem } from './entities/cart-item.entity';
 
 @Module({
-  imports:[JwtModule,TypeOrmModule.forFeature([Cart,Product]),UserModule,ProductModule],
+  imports:[JwtModule,TypeOrmModule.forFeature([Cart,Product,CartItem]),UserModule,ProductModule],
   controllers: [CartController],
   providers: [CartService],
   exports:[CartModule]

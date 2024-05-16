@@ -1,39 +1,15 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Request, ParseIntPipe } from '@nestjs/common';
 import { UserService } from './user.service';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from 'src/auth/auth.service';
 import { User } from './entities/user.entity';
 import { JwtAdminAuthGuard } from './gurads/admin.guard';
-import { ResetPasswordDto } from './dto/reset-password.dto';
+import { UpdateUserDto } from 'src/auth/dto/update-user.dto';
+
 
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService, private readonly authService: AuthService) {}
-
-  @Post("/signup")
-  create(@Body() createUserDto: CreateUserDto) {
-    return this.userService.createUser(createUserDto);
-  }
-
-  @Post("/login")
-  @UseGuards(AuthGuard("local"))
-  login(@Request() req:any) {
-    console.log(req.user);
-    return this.authService.generateToken(req.user);
-  }
-  
-  @Post("/forgot")
-  async forgotPassword(@Body('email') email:string){
-    return this.userService.passwordRecovery(email);
-  }
-
-
-  @Post("/reset")
-  async resetPassword(@Body()resetPasswordDto:ResetPasswordDto){
-    return this.userService.resetPassword(resetPasswordDto);
-  }
 
   @Get()
   @UseGuards(JwtAdminAuthGuard)

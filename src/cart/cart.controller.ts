@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, Req, UnauthorizedException, UseGuards, ParseIntPipe } from '@nestjs/common';
 import { CartService } from './cart.service';
-import { CreateCartDto } from './dto/create-cart.dto';
+import { AddToCartDto } from './dto/create-cart.dto';
 import { UpdateCartDto } from './dto/update-cart.dto';
 import { JwtAuthGuard } from './guards/cart.guard';
 import { JwtAdminAuthGuard } from 'src/user/gurads/admin.guard';
@@ -14,9 +14,10 @@ export class CartController {
   
   @Post()
   @UseGuards(JwtAuthGuard)
-  create(@Body() createCartDto: CreateCartDto, @Req() req:any) {
+  create(@Body() addToCartDto: AddToCartDto, @Req() req:any) {
     console.log(req.user);
-    return this.cartService.createCart(createCartDto,req.user.id);
+    return this.cartService.addToCart(req.user.id,addToCartDto,);
+
   }
  
   @Get()
@@ -45,6 +46,6 @@ export class CartController {
   @Delete(':CartId')
   @UseGuards(JwtAuthGuard)
   remove(@Param('CartId',ParseIntPipe) CartId: number) {
-    return this.cartService.removeCartById(CartId);
+    return this.cartService.deleteProductByCartId(CartId);
   }
 }

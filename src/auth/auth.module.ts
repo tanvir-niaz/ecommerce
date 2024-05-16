@@ -9,6 +9,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { ConfigService,ConfigModule } from '@nestjs/config';
 import { AuthService } from './auth.service';
 import { JwtStrategy } from './jwt.strategy';
+import { AuthController } from './auth.controller';
 
 
 @Module({
@@ -23,7 +24,7 @@ import { JwtStrategy } from './jwt.strategy';
       }),
       inject: [ConfigService],})
 ],
-  controllers: [],
+  controllers: [AuthController],
   providers: [LocalStrategy,AuthService,JwtStrategy],
   exports:[AuthService]
 })

@@ -10,9 +10,12 @@ import { JwtModule } from '@nestjs/jwt';
 import { UserService } from 'src/user/user.service';
 import { UserModule } from 'src/user/user.module';
 import { Product } from 'src/product/entities/product.entity';
+import { User } from 'src/user/entities/user.entity';
+import { OrderItem } from './entities/order-item.entity';
+import { CartItem } from 'src/cart/entities/cart-item.entity';
 
 @Module({
-  imports:[TypeOrmModule.forFeature([Cart,Order,Product]),CartModule,JwtModule,UserModule],
+  imports:[TypeOrmModule.forFeature([Cart,Order,Product,User,OrderItem,CartItem]),CartModule,JwtModule,UserModule],
   controllers: [OrderController],
   providers: [OrderService],
 })

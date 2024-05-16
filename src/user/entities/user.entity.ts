@@ -1,4 +1,6 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Cart } from "src/cart/entities/cart.entity";
+import { Order } from "src/order/entities/order.entity";
+import { Column, Entity, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 
 
 
@@ -22,6 +24,12 @@ export class User {
 
     @Column({default:"not_available"})
     token:string;
+
+    @OneToOne(()=>Cart,cart=>cart.user)
+    cart:Cart
+
+    @OneToMany(()=>Order,order=>order.user,{eager:true})
+    orders:Order
 
     
 }

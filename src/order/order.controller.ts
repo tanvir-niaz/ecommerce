@@ -11,28 +11,28 @@ export class OrderController {
 
   @Post()
   @UseGuards(JwtAuthGuard)
-  create(@Body() createOrderDto: CreateOrderDto,@Req() req:any) {
-    return this.orderService.create(createOrderDto,req.user.id);
+  create(@Req() req:any) {
+    return this.orderService.createOrder(req.user.id);
   }
 
   @Get()
   @UseGuards(JwtAuthGuard)
   findAll(@Req() req:any) {
-    return this.orderService.findAll(req.user_id);
+    // return this.orderService.getPreviousOrders(req.user_id);
   }
 
   @Get(':userId')
   findOne(@Param('userId',ParseIntPipe) userId: number) {
-    return this.orderService.findOrdersByUserId(userId);
+    // return this.orderService.findOrdersByUserId(userId);
   }
 
   @Patch(':id')
   update(@Param('id',ParseIntPipe) id: number, @Body() updateOrderDto: UpdateOrderDto) {
-    return this.orderService.update(id, updateOrderDto);
+    // return this.orderService.update(id, updateOrderDto);
   }
 
   @Delete(':id')
   remove(@Param('id',ParseIntPipe) id: number) {
-    return this.orderService.remove(id);
+    // return this.orderService.remove(id);
   }
 }
