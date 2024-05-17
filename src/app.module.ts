@@ -1,12 +1,14 @@
 import { Module } from '@nestjs/common';
-import { UserModule } from './user/user.module';
+
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
-import { ProductModule } from './product/product.module';
-import { CartModule } from './cart/cart.module';
-import { OrderModule } from './order/order.module';
+
 import { JwtModule } from '@nestjs/jwt';
+import { ProductModule } from './modules/product/product.module';
+import { CartModule } from './modules/cart/cart.module';
+import { OrderModule } from './modules/order/order.module';
+import { UserModule } from './modules/user/user.module';
 
 
 @Module({
@@ -25,18 +27,17 @@ import { JwtModule } from '@nestjs/jwt';
         database: configService.get('DB_DATABASE'),
         entities: [__dirname+'/**/*.entity{.ts,.js}'], // Add your entities here
         synchronize: configService.get<boolean>('DB_SYNC'),
-        logging:true// Synchronize the schema with the database, only for development
+        // logging:true// Synchronize the schema with the database, only for development
       }),
       inject: [ConfigService],
     }),
     ProductModule,
     CartModule,
     OrderModule
-     // You need to import other modules if you have any
   ],
-  controllers: [], // Add your controllers here
+  controllers: [],
 
-  providers: [], // Add your providers here
+  providers: [], 
 })
 export class AppModule {}
 
