@@ -1,11 +1,12 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Request, ParseIntPipe } from '@nestjs/common';
-import { UserService } from 'src/user/user.service';
+
 import { AuthService } from './auth.service';
 
 import { AuthGuard } from '@nestjs/passport';
 
 import { CreateUserDto } from './dto/create-user.dto';
 import { ResetPasswordDto } from './dto/reset-password.sto';
+import { UserService } from 'src/modules/user/user.service';
 
 
 @Controller('auth')
@@ -20,7 +21,7 @@ export class AuthController {
   @Post("/login")
   @UseGuards(AuthGuard("local"))
   login(@Request() req:any) {
-    console.log(req.user);
+    // console.log(req.user);
     return this.authService.generateToken(req.user);
   } 
 

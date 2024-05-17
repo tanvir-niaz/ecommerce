@@ -3,26 +3,26 @@ import { BadRequestException, ConflictException, Inject, Injectable, forwardRef 
 import { ConfigService } from "@nestjs/config";
 import { JwtService } from "@nestjs/jwt";
 import { InjectRepository } from "@nestjs/typeorm";
-import { User } from "src/user/entities/user.entity";
-import { UserService } from "src/user/user.service";
+
 import { Repository } from "typeorm";
 import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
 import { CreateUserDto } from "./dto/create-user.dto";
 import { ResetPasswordDto } from "./dto/reset-password.sto";
+import { User } from "src/modules/user/entities/user.entity";
 
 
 @Injectable()
 export class AuthService{
     
     constructor(
-        private readonly userService:UserService,
+        // private readonly userService:UserService,
         private readonly jwtService:JwtService,@InjectRepository(User) private readonly userRepository:Repository<User>,private mailerService:MailerService,private readonly configService:ConfigService){
 
     }
     generateToken(payload:User)
     {
-        console.log("payload",payload)
+        // console.log("payload",payload)
         return this.jwtService.sign(JSON.parse(JSON.stringify(payload)));
     }
     async createUser(createUserDto: CreateUserDto) {

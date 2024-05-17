@@ -3,7 +3,8 @@ import { CartService } from './cart.service';
 import { AddToCartDto } from './dto/create-cart.dto';
 import { UpdateCartDto } from './dto/update-cart.dto';
 import { JwtAuthGuard } from './guards/cart.guard';
-import { JwtAdminAuthGuard } from 'src/user/gurads/admin.guard';
+import { JwtAdminAuthGuard } from '../user/gurads/admin.guard';
+
 
 @Controller('cart')
 
@@ -15,7 +16,7 @@ export class CartController {
   @Post()
   @UseGuards(JwtAuthGuard)
   create(@Body() addToCartDto: AddToCartDto, @Req() req:any) {
-    console.log(req.user);
+    // console.log("from contoller cart " ,req.user.id);
     return this.cartService.addToCart(req.user.id,addToCartDto,);
 
   }

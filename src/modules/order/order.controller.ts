@@ -3,7 +3,8 @@ import { OrderService } from './order.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { AuthGuard } from '@nestjs/passport';
-import { JwtAuthGuard } from 'src/cart/guards/cart.guard';
+import { JwtAuthGuard } from '../cart/guards/cart.guard';
+
 
 @Controller('order')
 export class OrderController {
@@ -18,7 +19,7 @@ export class OrderController {
   @Get()
   @UseGuards(JwtAuthGuard)
   findAll(@Req() req:any) {
-    // return this.orderService.getPreviousOrders(req.user_id);
+    return this.orderService.getPreviousOrders(req.user.id);
   }
 
   @Get(':userId')

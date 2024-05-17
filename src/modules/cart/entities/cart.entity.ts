@@ -1,7 +1,7 @@
-import { Product } from "src/product/entities/product.entity";
-import { User } from "src/user/entities/user.entity";
+
 import { Column, Entity, JoinColumn, ManyToMany, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 import { CartItem } from "./cart-item.entity";
+import { User } from "src/modules/user/entities/user.entity";
 
 
 
@@ -10,11 +10,11 @@ export class Cart {
     @PrimaryGeneratedColumn()
     id:number;
 
-    @OneToOne(()=>User)
+    @OneToOne(()=>User,user=>user.cart)
     @JoinColumn()
     user:User;
 
-    @OneToMany(()=>CartItem,CartItem=>CartItem.cart)
+    @OneToMany(()=>CartItem,CartItem=>CartItem.cart,{cascade:true})
     items:CartItem[];
 
 

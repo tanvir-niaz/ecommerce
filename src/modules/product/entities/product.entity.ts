@@ -1,4 +1,4 @@
-import { Cart } from "src/cart/entities/cart.entity";
+import { CartItem } from "src/modules/cart/entities/cart-item.entity";
 import { Column, Entity, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 
 
@@ -23,6 +23,11 @@ export class Product {
 
     @Column()
     category:string;
+
+    
+    @OneToMany(() => Product, cartItem => cartItem.id)
+    
+    cartItem: CartItem;
 
     
 }

@@ -3,7 +3,7 @@ import { ProductService } from './product.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { Product } from './entities/product.entity';
-import { JwtAdminAuthGuard } from 'src/user/gurads/admin.guard';
+import { JwtAdminAuthGuard } from '../user/gurads/admin.guard';
 
 @Controller('product')
 export class ProductController {

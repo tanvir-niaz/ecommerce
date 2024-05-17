@@ -4,42 +4,47 @@ import { UpdateCartDto } from './dto/update-cart.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Cart } from './entities/cart.entity';
 import { Repository } from 'typeorm';
-import { Product } from 'src/product/entities/product.entity';
+
 import { STATUS_CODES } from 'http';
 import { error } from 'console';
 import { CartItem } from './entities/cart-item.entity';
-import { User } from 'src/user/entities/user.entity';
+
 import { JwtAuthGuard } from './guards/cart.guard';
+import { User } from '../user/entities/user.entity';
+import { Product } from '../product/entities/product.entity';
 
 @Injectable()
 export class CartService {
 
-  constructor(@InjectRepository(Cart) private readonly cartRepository:Repository<Cart>,@InjectRepository(CartItem) private readonly cartItemRepository:Repository<CartItem>,@InjectRepository(Product) private readonly productRepository: Repository<Product> ){}
+  constructor(@InjectRepository(User) private readonly userRepository:Repository<User>,@InjectRepository(Cart) private readonly cartRepository:Repository<Cart>,@InjectRepository(CartItem) private readonly cartItemRepository:Repository<CartItem>,@InjectRepository(Product) private readonly productRepository: Repository<Product> ){}
 
   async addToCart(userId: number, addToCartDto: AddToCartDto): Promise<void> {
     const { productId, quantity } = addToCartDto;
-  
+    
     const product = await this.productRepository.findOne({ where: { id: productId } });
     if (!product) {
       throw new NotFoundException('Product not found');
     }
-  
-    let cart = await this.cartRepository.findOne({ where: { user: { id: userId } } });
+
+    // Fetch the user entity from the database
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    let cart = await this.cartRepository.findOne({ where: { user: { id: userId } }, relations: ['user', 'items', 'items.product'] });
     if (!cart) {
       cart = new Cart();
-      const user = new User();
-      user.id = userId;
       cart.user = user;
+      // console.log("New cart created for user:", cart.user);
       await this.cartRepository.save(cart);
     }
-  
+
     let cartItem = await this.cartItemRepository.findOne({
-      where: { cart: { id: cart.id }, product: { id: product.id } }, 
+      where: { cart: { id: cart.id }, product: { id: product.id } }
     });
-    console.log(cartItem)
-  
+
     if (cartItem) {
- 
       cartItem.quantity += quantity;
     } else {
       cartItem = new CartItem();
@@ -47,7 +52,10 @@ export class CartService {
       cartItem.product = product;
       cartItem.quantity = quantity;
     }
-  
+    user.cart=cart;
+    // console.log(cart);
+    await this.userRepository.save(user);
+    console.log(user)
     await this.cartItemRepository.save(cartItem);
   }
 
@@ -88,15 +96,14 @@ export class CartService {
     if (!cartItem) {
       throw new NotFoundException('Cart item not found');
     }
-
-    
     cartItem.quantity = quantity;
-
-    // Save the updated cart item to the database
     return await this.cartItemRepository.save(cartItem);
   }
+
   async deleteProductByCartId(cartId:number){
     return this.cartItemRepository.delete(cartId);
 
   }
+
+  
 }

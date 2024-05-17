@@ -4,8 +4,9 @@ import { JwtService } from '@nestjs/jwt';
 
 import { UserService } from '../../user/user.service';
 import { ConfigService } from '@nestjs/config';
-import { JwtAuthGuard } from 'src/cart/guards/cart.guard';
+
 import { Reflector } from '@nestjs/core';
+import { JwtAuthGuard } from 'src/modules/cart/guards/cart.guard';
 
 
 

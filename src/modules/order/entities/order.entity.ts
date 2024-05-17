@@ -1,12 +1,17 @@
-import { User } from "src/user/entities/user.entity";
+
 import { Column, Entity, PrimaryGeneratedColumn, CreateDateColumn, ManyToOne, OneToMany } from "typeorm";
 import { OrderItem } from "./order-item.entity";
-import { Cart } from "src/cart/entities/cart.entity";
+import { User } from "src/modules/user/entities/user.entity";
+import { Cart } from "src/modules/cart/entities/cart.entity";
+
 
 @Entity()
 export class Order {
     @PrimaryGeneratedColumn()
     id: number;
+
+    // @Column({default:0})
+    // user_id:number;
 
     @ManyToOne(() => User, user => user.orders)
     user: User;
