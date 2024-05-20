@@ -20,7 +20,7 @@ export class OrderService {
   @InjectRepository(OrderItem) private readonly orderItemRepository:Repository<Order>,
   @InjectRepository(CartItem) private readonly cartItemRepository:Repository<Cart>
 ){}
-async createOrder(userId: number): Promise<void> {
+async createOrder(createOrderDto:CreateOrderDto,userId: number): Promise<void> {
   const cart = await this.cartRepository.findOne({ 
     where: { user: { id: userId } }, 
     relations: ['items', 'items.product', 'user'] 
@@ -33,44 +33,45 @@ async createOrder(userId: number): Promise<void> {
     throw new NotFoundException("Nothing in cart");
   }
 
-  const totalPrice = cart.items.reduce((total, cartItem) => {
+  const totalPrice =cart.items.reduce((total, cartItem) => {
     return total + (cartItem.product.price * cartItem.quantity);
   }, 0);
 
 
-  // Create a new order entity
+  
   const order = new Order();
   order.user = cart.user;
+  order.cartId=cart.id;
   order.totalPrice = totalPrice;
+  order.address=createOrderDto.address;
   console.log()
   
 
   // Create order items for each cart item
-  const orderItems = cart.items.map(cartItem => {
+  const orderItems:OrderItem[] = cart.items.map(cartItem => {
     const orderItem = new OrderItem();
     orderItem.order = order;
-    // orderItem.product = cartItem.product;
+    orderItem.product = cartItem.product;
     orderItem.quantity = cartItem.quantity;
+    
     orderItem.productDetails=cartItem.product;
-    // orderItem.price = cartItem.product.price;
-
     return orderItem;
   });
+  for (const cartItem of cart.items) {
+    cartItem.product.stockQuantity -= cartItem.quantity;
+    await this.productRepository.save(cartItem.product);
+  }
 
   // Save the order and order items to the database
   await this.orderRepository.save(order);
   await this.orderItemRepository.save(orderItems);
 
-  // Delete cart items first
   await this.cartItemRepository.softRemove(cart.items);
-
-  // Now that the order and order items are saved, delete the cart
-  // await this.cartRepository.remove(cart);
 }
 
   async getPreviousOrders(userId: number): Promise<Order[]> {
     // Query orders associated with the user ID and eagerly load the products
-    const orders = await this.orderRepository.find({
+    const orders   = await this.orderRepository.find({
       where: { user: { id: userId } },
       relations: ['items', 'items.product'], // Ensure products are eagerly loaded
     });

@@ -52,10 +52,14 @@ export class CartService {
       cartItem.product = product;
       cartItem.quantity = quantity;
     }
+    if(cartItem.quantity>product.stockQuantity){
+      throw new  BadRequestException("Not enough stock");
+      return;
+    }
     user.cart=cart;
     // console.log(cart);
     await this.userRepository.save(user);
-    console.log(user)
+    // console.log(user)
     await this.cartItemRepository.save(cartItem);
   }
 
