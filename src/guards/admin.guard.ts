@@ -1,13 +1,5 @@
 import { Injectable, CanActivate, ExecutionContext, UnauthorizedException } from '@nestjs/common';
-import { Observable } from 'rxjs';
-import { JwtService } from '@nestjs/jwt';
-
-import { UserService } from '../../user/user.service';
-import { ConfigService } from '@nestjs/config';
-
-import { Reflector } from '@nestjs/core';
-import { JwtAuthGuard } from 'src/modules/cart/guards/cart.guard';
-
+import { JwtAuthGuard } from 'src/guards/user.guard';
 
 
 @Injectable()

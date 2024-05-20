@@ -23,7 +23,9 @@ export class User {
     @Column({ default: "user" }) // Set default value to "user"
     roles: string;
 
-    @Column({default:"not_available"})
+    @Column({
+        nullable:true
+    })
     token:string;
 
     @OneToOne(()=>Cart,cart=>cart.user,{eager:true})

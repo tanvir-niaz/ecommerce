@@ -15,7 +15,7 @@ export class OrderItem {
   @Column({type: 'jsonb',nullable:true})
   productDetails: object;
 
-  @ManyToOne(() => Product)
+  @ManyToOne(() => Product,{nullable:true})
   product: Product;
 
   @Column()

@@ -17,6 +17,5 @@ export class Cart {
     @OneToMany(()=>CartItem,CartItem=>CartItem.cart,{cascade:true})
     items:CartItem[];
 
-
 }
 
