@@ -3,10 +3,11 @@ import { UserService } from './user.service';
 import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from 'src/auth/auth.service';
 import { User } from './entities/user.entity';
-import { JwtAdminAuthGuard } from './gurads/admin.guard';
 import { UpdateUserDto } from 'src/auth/dto/update-user.dto';
+import { JwtAdminAuthGuard } from 'src/guards/admin.guard';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
-
+@ApiTags("user")
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService, private readonly authService: AuthService) {}
@@ -19,6 +20,7 @@ export class UserController {
 
   @Get(':userId')
   @UseGuards(JwtAdminAuthGuard)
+  @ApiBearerAuth('access-token')
   async findOne(@Param('userId',ParseIntPipe) userId: number) {
     
     return this.userService.findOne(userId);
@@ -26,12 +28,14 @@ export class UserController {
 
   @Patch(':userId')
   @UseGuards(JwtAdminAuthGuard)
+  @ApiBearerAuth('access-token')
   update(@Param('userId',ParseIntPipe) userId: number, @Body() updateUserDto: UpdateUserDto) {
     return this.userService.update(userId, updateUserDto);
   }
 
   @Delete(':userId')
   @UseGuards(JwtAdminAuthGuard)
+  @ApiBearerAuth('access-token')
   remove(@Param('userId',ParseIntPipe) userId: number) {
     return this.userService.remove(userId);
   }

@@ -5,11 +5,9 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Cart } from './entities/cart.entity';
 import { Repository } from 'typeorm';
 
-import { STATUS_CODES } from 'http';
-import { error } from 'console';
 import { CartItem } from './entities/cart-item.entity';
 
-import { JwtAuthGuard } from './guards/cart.guard';
+
 import { User } from '../user/entities/user.entity';
 import { Product } from '../product/entities/product.entity';
 
@@ -18,7 +16,7 @@ export class CartService {
 
   constructor(@InjectRepository(User) private readonly userRepository:Repository<User>,@InjectRepository(Cart) private readonly cartRepository:Repository<Cart>,@InjectRepository(CartItem) private readonly cartItemRepository:Repository<CartItem>,@InjectRepository(Product) private readonly productRepository: Repository<Product> ){}
 
-  async addToCart(userId: number, addToCartDto: AddToCartDto): Promise<void> {
+  async addToCart(userId: number, addToCartDto: AddToCartDto): Promise<string> {
     const { productId, quantity } = addToCartDto;
     
     const product = await this.productRepository.findOne({ where: { id: productId } });
@@ -61,6 +59,7 @@ export class CartService {
     await this.userRepository.save(user);
     // console.log(user)
     await this.cartItemRepository.save(cartItem);
+    return "Successfully added to the cart"
   }
 
 
@@ -89,7 +88,7 @@ export class CartService {
     if(!cart){
       throw new NotFoundException("No cart found");
     }
-    return cart;
+    return cart.items;
 
   }
 

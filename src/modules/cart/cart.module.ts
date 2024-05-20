@@ -5,7 +5,6 @@ import { JwtModule } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Cart } from './entities/cart.entity';
 
-import { JwtAuthGuard } from './guards/cart.guard';
 import { CartItem } from './entities/cart-item.entity';
 import { Product } from '../product/entities/product.entity';
 import { User } from '../user/entities/user.entity';

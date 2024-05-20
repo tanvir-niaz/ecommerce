@@ -2,12 +2,14 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, Req, UnauthorizedExc
 import { CartService } from './cart.service';
 import { AddToCartDto } from './dto/create-cart.dto';
 import { UpdateCartDto } from './dto/update-cart.dto';
-import { JwtAuthGuard } from './guards/cart.guard';
-import { JwtAdminAuthGuard } from '../user/gurads/admin.guard';
+import { JwtAuthGuard } from '../../guards/user.guard';
+import { JwtAdminAuthGuard } from 'src/guards/admin.guard';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
 
+@ApiTags("cart")
+@ApiBearerAuth('access-token') 
 @Controller('cart')
-
 export class CartController {
   constructor(private readonly cartService: CartService,
    
@@ -15,6 +17,7 @@ export class CartController {
   
   @Post()
   @UseGuards(JwtAuthGuard)
+  
   create(@Body() addToCartDto: AddToCartDto, @Req() req:any) {
     // console.log("from contoller cart " ,req.user.id);
     return this.cartService.addToCart(req.user.id,addToCartDto,);

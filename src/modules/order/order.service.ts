@@ -1,11 +1,9 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import {Injectable, NotFoundException } from '@nestjs/common';
 import { CreateOrderDto } from './dto/create-order.dto';
-import { UpdateOrderDto } from './dto/update-order.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Order } from './entities/order.entity';
 import { Repository } from 'typeorm';
 import { OrderItem } from './entities/order-item.entity';
-import { use } from 'passport';
 import { Cart } from '../cart/entities/cart.entity';
 import { Product } from '../product/entities/product.entity';
 import { User } from '../user/entities/user.entity';
@@ -20,7 +18,7 @@ export class OrderService {
   @InjectRepository(OrderItem) private readonly orderItemRepository:Repository<Order>,
   @InjectRepository(CartItem) private readonly cartItemRepository:Repository<Cart>
 ){}
-async createOrder(createOrderDto:CreateOrderDto,userId: number): Promise<void> {
+async createOrder(createOrderDto:CreateOrderDto,userId: number): Promise<string> {
   const cart = await this.cartRepository.findOne({ 
     where: { user: { id: userId } }, 
     relations: ['items', 'items.product', 'user'] 
@@ -43,7 +41,7 @@ async createOrder(createOrderDto:CreateOrderDto,userId: number): Promise<void> {
   order.user = cart.user;
   order.cartId=cart.id;
   order.totalPrice = totalPrice;
-  order.address=createOrderDto.address;
+  order.shipping_address=createOrderDto.shipping_address;
   console.log()
   
 
@@ -51,7 +49,7 @@ async createOrder(createOrderDto:CreateOrderDto,userId: number): Promise<void> {
   const orderItems:OrderItem[] = cart.items.map(cartItem => {
     const orderItem = new OrderItem();
     orderItem.order = order;
-    orderItem.product = cartItem.product;
+    // orderItem.product = cartItem.product;
     orderItem.quantity = cartItem.quantity;
     
     orderItem.productDetails=cartItem.product;
@@ -67,6 +65,7 @@ async createOrder(createOrderDto:CreateOrderDto,userId: number): Promise<void> {
   await this.orderItemRepository.save(orderItems);
 
   await this.cartItemRepository.softRemove(cart.items);
+  return "Your order has been successfully placed"
 }
 
   async getPreviousOrders(userId: number): Promise<Order[]> {
@@ -77,5 +76,26 @@ async createOrder(createOrderDto:CreateOrderDto,userId: number): Promise<void> {
     });
   
     return orders;
+  }
+  async findOrdersByUserId(userId: number): Promise<Order[]> {
+    // Query orders associated with the user ID and eagerly load the products
+    const orders   = await this.orderRepository.find({
+      where: { user: { id: userId } },
+      relations: ['items', 'items.product'], // Ensure products are eagerly loaded
+    });
+  
+    return orders;
+  }
+
+  async findOrdersByOrderId(orderId: number): Promise<Order[]> {
+    // Query orders associated with the user ID and eagerly load the products
+    const order   = await this.orderRepository.find({
+      where: { id:orderId} // Ensure products are eagerly loaded
+    });
+    if(!order){
+      throw new NotFoundException("Order id doesnt exist")
+    }
+  
+    return order;
   }
 }

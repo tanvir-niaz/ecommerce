@@ -10,6 +10,7 @@ import * as crypto from 'crypto';
 import { CreateUserDto } from "./dto/create-user.dto";
 import { ResetPasswordDto } from "./dto/reset-password.sto";
 import { User } from "src/modules/user/entities/user.entity";
+import { ForgotPasswordDto } from "./dto/forgot-password.dto";
 
 
 @Injectable()
@@ -47,8 +48,9 @@ export class AuthService{
     }
 
 
-    async passwordRecovery(email:string){
+    async passwordRecovery(forgotPasswordDto:ForgotPasswordDto){
         const token:string= crypto.randomBytes(Math.ceil(12 / 2)).toString('hex').slice(0, 12);
+        const {email}=forgotPasswordDto;
         const user=await this.userRepository.findOne({where:{email}});
         user.token=token;
         // console.log(user);
