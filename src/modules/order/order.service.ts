@@ -8,15 +8,17 @@ import { Cart } from '../cart/entities/cart.entity';
 import { Product } from '../product/entities/product.entity';
 import { User } from '../user/entities/user.entity';
 import { CartItem } from '../cart/entities/cart-item.entity';
+import { MailerService } from '@nestjs-modules/mailer';
 
 @Injectable()
 export class OrderService {
-  constructor(@InjectRepository(Order) private readonly orderRepository:Repository<Order>,
+  constructor(private mailerService:MailerService,@InjectRepository(Order) private readonly orderRepository:Repository<Order>,
   @InjectRepository(Cart) private readonly cartRepository:Repository<Cart>,
   @InjectRepository(Product) private readonly productRepository:Repository<Product>,
   @InjectRepository(User) private readonly userRepository:Repository<User>,
   @InjectRepository(OrderItem) private readonly orderItemRepository:Repository<Order>,
-  @InjectRepository(CartItem) private readonly cartItemRepository:Repository<Cart>
+  @InjectRepository(CartItem) private readonly cartItemRepository:Repository<Cart>,
+  
 ){}
 async createOrder(createOrderDto:CreateOrderDto,userId: number): Promise<string> {
   const cart = await this.cartRepository.findOne({ 
@@ -65,6 +67,7 @@ async createOrder(createOrderDto:CreateOrderDto,userId: number): Promise<string>
   await this.orderItemRepository.save(orderItems);
 
   await this.cartItemRepository.softRemove(cart.items);
+  
   return "Your order has been successfully placed"
 }
 
@@ -97,5 +100,15 @@ async createOrder(createOrderDto:CreateOrderDto,userId: number): Promise<string>
     }
   
     return order;
+  }
+
+  async sendOrderConfimationMail(userId:number){
+    const user=await this.userRepository.findOne({where:{id:userId}});
+    await this.mailerService.sendMail({
+      to:user.email,
+      subject:"Order Confirmation mail",
+      html:`Dear ${user.name},<br> Your order has been successfully created`
+    });
+
   }
 }
