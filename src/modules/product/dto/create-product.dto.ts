@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsNotEmpty, IsNumber, IsString } from "class-validator";
+import { IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator";
 
 
 
@@ -14,10 +14,10 @@ export class CreateProductDto {
     name:string;
 
 
-@ApiProperty({
-    description:"Enter the product description here",
-    example:"INTEL CORE I7 13700H 13TH GEN RTX 4060 8GB GRAPHICS 16GB DDR5 RAM 1TB SSD 16 INCH 3.2K 165 HZ IPS DISPLAY STORM GREY GAMING LAPTOP (82Y30072LK)"
-})
+    @ApiProperty({
+        description:"Enter the product description here",
+        example:"INTEL CORE I7 13700H 13TH GEN RTX 4060 8GB GRAPHICS 16GB DDR5 RAM 1TB SSD 16 INCH 3.2K 165 HZ IPS DISPLAY STORM GREY GAMING LAPTOP (82Y30072LK)"
+    })
     @IsNotEmpty()
     @IsString()
     description:string;
@@ -31,6 +31,15 @@ export class CreateProductDto {
     @IsNotEmpty()
     @IsNumber()
     price:number;
+
+
+    @ApiProperty({
+        description:"Enter the discount percentage",
+        example:20
+    })
+    @IsOptional()
+    @IsNumber()
+    discount:number;
 
     @ApiProperty({
         description:"Enter the stock quantity here",

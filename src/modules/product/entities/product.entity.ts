@@ -18,6 +18,9 @@ export class Product {
     @Column()
     price:number;
 
+    @Column({default:0})
+    discount:number;
+
     @Column()
     stockQuantity:number;
 
@@ -26,8 +29,5 @@ export class Product {
 
     
     @OneToMany(() => Product, cartItem => cartItem.id)
-    
     cartItem: CartItem;
-
-    
 }

@@ -29,27 +29,14 @@ export class CartController {
   findAll(@Req() req:any):any {
     return this.cartService.findAll(req.user.id);
   }
-  @Get('/all')
-  @UseGuards(JwtAdminAuthGuard)
-  findAllCart(@Req() req:any):any {
-    return this.cartService.findAllCart();
-  }
-
   @Get('/:userId')
   @UseGuards(JwtAdminAuthGuard)
   findOne(@Param('userId',ParseIntPipe) userId: number,@Req()req:any) {
     return this.cartService.findCartByUserId(userId);
   }
-
-  @Patch(':cartId')
+  @Delete(':cartId')
   @UseGuards(JwtAuthGuard)
-  update(@Param('cartId',ParseIntPipe) cartId: number, @Body() updateCartDto: UpdateCartDto) {
-    return this.cartService.updateCart(cartId, updateCartDto);
-  }
-
-  @Delete(':CartId')
-  @UseGuards(JwtAuthGuard)
-  remove(@Param('CartId',ParseIntPipe) CartId: number) {
-    return this.cartService.deleteProductByCartId(CartId);
+  remove(@Param('cartId',ParseIntPipe) cartId: number) {
+    return this.cartService.deleteProductByCartId(cartId);
   }
 }

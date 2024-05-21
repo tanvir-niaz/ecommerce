@@ -23,8 +23,6 @@ export class CartService {
     if (!product) {
       throw new NotFoundException('Product not found');
     }
-
-    // Fetch the user entity from the database
     const user = await this.userRepository.findOne({ where: { id: userId } });
     if (!user) {
       throw new NotFoundException('User not found');

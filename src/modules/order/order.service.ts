@@ -41,17 +41,15 @@ async createOrder(createOrderDto:CreateOrderDto,userId: number): Promise<string>
   
   const order = new Order();
   order.user = cart.user;
+  order.contact_number=createOrderDto.contact_number;
   order.cartId=cart.id;
   order.totalPrice = totalPrice;
   order.shipping_address=createOrderDto.shipping_address;
   console.log()
   
-
-  // Create order items for each cart item
   const orderItems:OrderItem[] = cart.items.map(cartItem => {
     const orderItem = new OrderItem();
     orderItem.order = order;
-    // orderItem.product = cartItem.product;
     orderItem.quantity = cartItem.quantity;
     
     orderItem.productDetails=cartItem.product;
@@ -62,7 +60,7 @@ async createOrder(createOrderDto:CreateOrderDto,userId: number): Promise<string>
     await this.productRepository.save(cartItem.product);
   }
 
-  // Save the order and order items to the database
+  
   await this.orderRepository.save(order);
   await this.orderItemRepository.save(orderItems);
 
@@ -72,28 +70,26 @@ async createOrder(createOrderDto:CreateOrderDto,userId: number): Promise<string>
 }
 
   async getPreviousOrders(userId: number): Promise<Order[]> {
-    // Query orders associated with the user ID and eagerly load the products
     const orders   = await this.orderRepository.find({
       where: { user: { id: userId } },
-      relations: ['items', 'items.product'], // Ensure products are eagerly loaded
+      relations: ['items', 'items.product'],
     });
   
     return orders;
   }
   async findOrdersByUserId(userId: number): Promise<Order[]> {
-    // Query orders associated with the user ID and eagerly load the products
     const orders   = await this.orderRepository.find({
       where: { user: { id: userId } },
-      relations: ['items', 'items.product'], // Ensure products are eagerly loaded
+      relations: ['items', 'items.product'],
     });
   
     return orders;
   }
 
   async findOrdersByOrderId(orderId: number): Promise<Order[]> {
-    // Query orders associated with the user ID and eagerly load the products
+    
     const order   = await this.orderRepository.find({
-      where: { id:orderId} // Ensure products are eagerly loaded
+      where: { id:orderId} 
     });
     if(!order){
       throw new NotFoundException("Order id doesnt exist")

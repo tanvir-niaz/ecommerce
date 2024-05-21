@@ -10,6 +10,9 @@ export class Cart {
     @PrimaryGeneratedColumn()
     id:number;
 
+    // @Column()
+    // delivery_type:[]
+
     @OneToOne(()=>User,user=>user.cart)
     @JoinColumn()
     user:User;

@@ -17,6 +17,9 @@ export class Order {
     @Column()
     shipping_address:string;
 
+    @Column({nullable:true})
+    contact_number:string;
+
     @CreateDateColumn()
     createdAt: Date;
 

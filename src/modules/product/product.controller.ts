@@ -4,40 +4,41 @@ import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { Product } from './entities/product.entity';
 import { JwtAdminAuthGuard } from 'src/guards/admin.guard';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiQuery, ApiTags } from '@nestjs/swagger';
+import { ProductQueryDto } from './dto/productQuery.dto';
 
 @ApiTags("products")
-@Controller('product')
+@Controller('products')
 export class ProductController {
   constructor(private readonly productService: ProductService) {}
 
   @Post()
   @UseGuards(JwtAdminAuthGuard)
-  @ApiBearerAuth()
+  @ApiBearerAuth('access-token')
   create(@Body() createProductDto: CreateProductDto) {
     return this.productService.createProduct(createProductDto);
   }
 
   @Get()
-  async findAll(@Query('page')page=1,@Query('limit')limit=10,@Query()filters:any):Promise<{data:Product[],total:number}> {
-    const [products,total]= await this.productService.findAllProducts(page,limit,filters);
+  async findAll(@Query()productQueryDto:ProductQueryDto):Promise<{data:Product[],total:number}> {
+    const [products,total]= await this.productService.findAllProducts(productQueryDto);
     return {data:products,total};
   }
-  //get by product id
+
   @Get(':productId')
   findOne(@Param('productId',ParseIntPipe) productId: number) {
     return this.productService.findOneProduct(productId);
   }
 
   @Patch(':productId')
-  @ApiBearerAuth()
+  @ApiBearerAuth("access-token")
   @UseGuards(JwtAdminAuthGuard)
   update(@Param('productId',ParseIntPipe) productId: number, @Body() updateProductDto: UpdateProductDto) {
     return this.productService.updateProductById(productId, updateProductDto);
   }
 
   @Delete(':productId')
-  @ApiBearerAuth()
+  @ApiBearerAuth("access-token")
   @UseGuards(JwtAdminAuthGuard)
   remove(@Param('productId',ParseIntPipe) productId: number) {
     return this.productService.remove(productId);
