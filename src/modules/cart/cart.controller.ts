@@ -19,8 +19,7 @@ export class CartController {
   @UseGuards(JwtAuthGuard)
   
   create(@Body() addToCartDto: AddToCartDto, @Req() req:any) {
-    // console.log("from contoller cart " ,req.user.id);
-    return this.cartService.addToCart(req.user.id,addToCartDto,);
+    return this.cartService.addToCart(req.user.id,addToCartDto);
 
   }
  

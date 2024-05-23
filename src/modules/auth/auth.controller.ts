@@ -25,7 +25,6 @@ export class AuthController {
   @Post("/login")
   @UseGuards(AuthGuard("local"))
   login(@Body() loginUserDto:LoginUserDto,@Req() req:any) {
-    // console.log(req.user);
     return this.authService.generateToken(req.user);
   } 
 
@@ -34,9 +33,9 @@ export class AuthController {
     return this.authService.passwordRecovery(forgotPasswordDto);
   }
 
-  @Post("/reset-password")
-  async resetPassword(@Body()resetPasswordDto:ResetPasswordDto, @Req() req: Request, @Res({passthrough:true}) res: Response){
+  @Post("/reset-password/:token")
+  async resetPassword(@Body()resetPasswordDto:ResetPasswordDto, @Param('token')token:string,@Req() req: Request, @Res({passthrough:true}) res: Response){
     console.log("From reset password ",res.header);
-    return this.authService.resetPassword(resetPasswordDto);
+    return this.authService.resetPassword(resetPasswordDto,token);
   }
 }

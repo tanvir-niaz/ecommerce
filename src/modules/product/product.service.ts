@@ -1,10 +1,11 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { Product } from './entities/product.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ProductQueryDto } from './dto/productQuery.dto';
+import { error } from 'console';
 
 @Injectable()
 export class ProductService {
@@ -13,7 +14,8 @@ export class ProductService {
   }
   async createProduct(createProductDto: CreateProductDto) {
     let product:CreateProductDto=new Product();
-    product = this.productRepository.create(createProductDto);;
+    product = this.productRepository.create(createProductDto);
+    product.discountPrice=createProductDto.price-Number(createProductDto.price*createProductDto.discount)/100;
     return this.productRepository.save(product);
   }
 
@@ -51,15 +53,20 @@ export class ProductService {
     let product = await this.productRepository.findOne({ where: { id } });
   
     if (!product) {
-      throw new NotFoundException(`Product with ID ${id} not found`);
+      return {statusCode:HttpStatus.NOT_FOUND,message:"Product not found"};
     }
   
     product = Object.assign(product, updateProductDto);
-  
-    return this.productRepository.save(product);
+    this.productRepository.save(product);
+    return {
+      statusCode:HttpStatus.ACCEPTED,error:null,message:"Product has been successfully updated"
+    }
   }
 
   remove(id: number) {
-    return this.productRepository.delete(id);
+    this.productRepository.delete(id);
+    return {
+      statusCode:HttpStatus.OK,error:null,message:"Product successfully deleted"
+    }
   }
 }

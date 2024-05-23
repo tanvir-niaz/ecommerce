@@ -49,6 +49,10 @@ export class CreateProductDto {
     @IsNumber()
     stockQuantity:number;
 
+    @IsOptional()
+    @IsNumber()
+    discountPrice:number;
+
 
     @ApiProperty({
         description:"Enter the product categoty here",

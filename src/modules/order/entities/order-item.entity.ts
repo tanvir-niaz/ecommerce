@@ -13,12 +13,12 @@ export class OrderItem {
   @ManyToOne(() => Order, order => order.items)
   order: Order;
 
-  @Column({
-    type: 'enum',
-    enum: DeliveryType,
-    default: DeliveryType.STANDARD
-  })
-  delivery_type: DeliveryType;
+  // @Column({
+  //   type: 'enum',
+  //   enum: DeliveryType,
+  //   default: DeliveryType.STANDARD
+  // })
+  // delivery_type: DeliveryType;
 
   @Column({type: 'jsonb',nullable:true})
   productDetails: object;

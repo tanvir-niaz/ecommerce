@@ -21,6 +21,9 @@ export class Product {
     @Column({default:0})
     discount:number;
 
+    @Column({nullable:true})
+    discountPrice:number;
+
     @Column()
     stockQuantity:number;
 

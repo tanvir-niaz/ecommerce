@@ -12,12 +12,10 @@ export class CreateOrderDto {
     })
     @IsNotEmpty()
     shipping_address:string;
-
-
     
-    @IsNotEmpty()
-    @IsEnum(DeliveryType)
-    delivery_type: DeliveryType;
+    // @IsNotEmpty()
+    // @IsEnum(DeliveryType)
+    // delivery_type: DeliveryType;
 
 
     @ApiProperty({

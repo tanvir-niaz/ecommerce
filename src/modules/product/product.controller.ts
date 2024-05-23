@@ -6,6 +6,10 @@ import { Product } from './entities/product.entity';
 import { JwtAdminAuthGuard } from 'src/guards/admin.guard';
 import { ApiBearerAuth, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { ProductQueryDto } from './dto/productQuery.dto';
+import { Throttle } from '@nestjs/throttler';
+import { title } from 'process';
+
+
 
 @ApiTags("products")
 @Controller('products')
@@ -20,6 +24,7 @@ export class ProductController {
   }
 
   @Get()
+  @Throttle({ default: { limit: 30, ttl: 60000 } })
   async findAll(@Query()productQueryDto:ProductQueryDto):Promise<{data:Product[],total:number}> {
     const [products,total]= await this.productService.findAllProducts(productQueryDto);
     return {data:products,total};

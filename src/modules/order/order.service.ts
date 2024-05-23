@@ -1,4 +1,4 @@
-import {Injectable, NotFoundException } from '@nestjs/common';
+import {HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Order } from './entities/order.entity';
@@ -20,7 +20,7 @@ export class OrderService {
   @InjectRepository(CartItem) private readonly cartItemRepository:Repository<Cart>,
   
 ){}
-async createOrder(createOrderDto:CreateOrderDto,userId: number): Promise<string> {
+async createOrder(createOrderDto:CreateOrderDto,userId: number): Promise<object> {
   const cart = await this.cartRepository.findOne({ 
     where: { user: { id: userId } }, 
     relations: ['items', 'items.product', 'user'] 
@@ -33,17 +33,14 @@ async createOrder(createOrderDto:CreateOrderDto,userId: number): Promise<string>
     throw new NotFoundException("Nothing in cart");
   }
 
-  const totalPrice =cart.items.reduce((total, cartItem) => {
-    return total + (cartItem.product.price * cartItem.quantity);
-  }, 0);
-
-
   
   const order = new Order();
   order.user = cart.user;
   order.contact_number=createOrderDto.contact_number;
   order.cartId=cart.id;
-  order.totalPrice = totalPrice;
+  order.totalPrice = cart.totalPrice;
+  order.totalDiscount=cart.totalDiscount;
+  order.totalPriceAfterDiscount=cart.totalPriceAfterDiscount;
   order.shipping_address=createOrderDto.shipping_address;
   console.log()
   
@@ -59,14 +56,11 @@ async createOrder(createOrderDto:CreateOrderDto,userId: number): Promise<string>
     cartItem.product.stockQuantity -= cartItem.quantity;
     await this.productRepository.save(cartItem.product);
   }
-
-  
   await this.orderRepository.save(order);
   await this.orderItemRepository.save(orderItems);
-
   await this.cartItemRepository.softRemove(cart.items);
   
-  return "Your order has been successfully placed"
+  return {statusCode:HttpStatus.CREATED,error:null,message:"Your order has been successfully placed"}
 }
 
   async getPreviousOrders(userId: number): Promise<Order[]> {
@@ -98,13 +92,29 @@ async createOrder(createOrderDto:CreateOrderDto,userId: number): Promise<string>
     return order;
   }
 
-  async sendOrderConfimationMail(userId:number){
+
+  async removeOrder(orderId: number): Promise<object> {
+    const order = await this.orderRepository.findOne({ where: { id: orderId }, relations: ['items'] });
+    if (!order) {
+      return {statusCode:HttpStatus.NOT_FOUND,error:NotFoundException,message:"OrderId not found"};
+    }
+
+    const orderItemIds = order.items.map(item => item.id);
+    if (orderItemIds.length > 0) {
+      await this.orderItemRepository.delete(orderItemIds);
+    }
+    await this.orderRepository.delete(orderId);
+    return {statusCode:HttpStatus.OK,error:null,message:"Successfully removed the order"
+    };
+  }
+
+  async sendOrderConfimationMail(userId:number):Promise<object>{
     const user=await this.userRepository.findOne({where:{id:userId}});
     await this.mailerService.sendMail({
       to:user.email,
       subject:"Order Confirmation mail",
       html:`Dear ${user.name},<br> Your order has been successfully created`
     });
-
+    return {statusCode:HttpStatus.OK,error:null,message:"Confirmation mail has been sent to your email"}
   }
 }

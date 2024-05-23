@@ -17,6 +17,16 @@ export class Order {
     @Column()
     shipping_address:string;
 
+    @Column({default:0,nullable:true})
+    totalPrice:number;
+
+    @Column({default:0,nullable:true})
+    totalDiscount:number;
+
+
+    @Column({default:0,nullable:true})
+    totalPriceAfterDiscount:number;
+
     @Column({nullable:true})
     contact_number:string;
 
@@ -25,9 +35,6 @@ export class Order {
 
     @ManyToOne(() => User, user => user.orders)
     user: User;
-
-    @Column('decimal', { precision: 10, scale: 2 })
-    totalPrice: number;
 
 
     @OneToMany(() => OrderItem, orderItem => orderItem.order)

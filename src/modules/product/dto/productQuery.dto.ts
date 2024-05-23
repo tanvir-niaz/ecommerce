@@ -22,15 +22,16 @@ export class ProductQueryDto {
     @IsString()
     category: string;
 
-    @ApiProperty({ required: false })
+    @ApiProperty({ required: false,type:"number" })
     @IsOptional()
     @IsInt()
+    @Type(() => Number)
     minPrice: number;
 
-    @ApiProperty({ required: false })
+    @ApiProperty({ required: false , type: "number" })
     @IsOptional()
     @IsInt()
-
+    @Type(() => Number)
     maxPrice: number;
 
 

@@ -1,4 +1,5 @@
 
+import { Exclude } from "class-transformer";
 import { Cart } from "src/modules/cart/entities/cart.entity";
 import { Order } from "src/modules/order/entities/order.entity";
 import { Column, Entity, JoinColumn, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
@@ -14,15 +15,20 @@ export class User {
     @Column()
     name:string;
 
+    
     @Column()
     email:string;
 
+    @Exclude()
     @Column()
     password:string;
 
+
+    @Exclude()
     @Column({ default: "user" }) // Set default value to "user"
     roles: string;
 
+    @Exclude()
     @Column({
         nullable:true
     })
@@ -32,6 +38,7 @@ export class User {
     @JoinColumn()
     cart:Cart
 
+    @Exclude()
     @OneToMany(()=>Order
     ,order=>order.user,{eager:true})
     orders:Order[]

@@ -5,6 +5,7 @@ import { UpdateOrderDto } from './dto/update-order.dto';
 import { JwtAuthGuard } from 'src/guards/user.guard';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { JwtAdminAuthGuard } from 'src/guards/admin.guard';
+import { error } from 'console';
 
 @ApiTags("orders")
 @ApiBearerAuth('access-token') 
@@ -42,8 +43,16 @@ export class OrderController {
     return this.orderService.findOrdersByOrderId(orderId);
   }
 
-  @Delete(':id')
-  remove(@Param('id',ParseIntPipe) id: number) {
-    // return this.orderService.remove(id);
+  @Delete(':orderId')
+  @UseGuards(JwtAdminAuthGuard)
+  @ApiBearerAuth("access-token")
+  remove(@Param('orderId',ParseIntPipe) orderId: number) {
+    try{
+    return this.orderService.removeOrder(orderId);
+
+    }
+    catch{
+      throw new error;
+    }
   }
 }

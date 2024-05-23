@@ -13,6 +13,17 @@ export class Cart {
     // @Column()
     // delivery_type:[]
 
+    @Column({default:0,nullable:true})
+    totalPrice:number;
+
+    @Column({default:0,nullable:true})
+    totalDiscount:number;
+
+
+    @Column({default:0,nullable:true})
+    totalPriceAfterDiscount:number;
+
+
     @OneToOne(()=>User,user=>user.cart)
     @JoinColumn()
     user:User;
