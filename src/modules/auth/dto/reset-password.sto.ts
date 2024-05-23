@@ -6,15 +6,6 @@ import { IsNotEmpty, IsString } from "class-validator";
 export class ResetPasswordDto {
 
     @ApiProperty({
-        description:"Enter the token here",
-        example:"kasfdjk432184fndsa"
-    })
-    @IsNotEmpty()
-    @IsString()
-    token:string;
-
-
-    @ApiProperty({
         description:"Enter the new password",
         example:"newpassword"
     })

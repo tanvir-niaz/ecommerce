@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Request, ParseIntPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, ParseIntPipe, Req, Res } from '@nestjs/common';
 
 import { AuthService } from './auth.service';
 
@@ -10,6 +10,7 @@ import { UserService } from 'src/modules/user/user.service';
 import { LoginUserDto } from './dto/login-user.dto';
 import { ApiTags } from '@nestjs/swagger';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { Request, Response } from 'express';
 
 @ApiTags("auth")
 @Controller('auth')
@@ -23,18 +24,18 @@ export class AuthController {
 
   @Post("/login")
   @UseGuards(AuthGuard("local"))
-  login(@Body() loginUserDto:LoginUserDto,@Request() req:any) {
-    // console.log(req.user);
+  login(@Body() loginUserDto:LoginUserDto,@Req() req:any) {
     return this.authService.generateToken(req.user);
   } 
 
-  @Post("/forgot")
+  @Post("/forgot-password")
   async forgotPassword(@Body() forgotPasswordDto:ForgotPasswordDto){
     return this.authService.passwordRecovery(forgotPasswordDto);
   }
 
-  @Post("/reset")
-  async resetPassword(@Body()resetPasswordDto:ResetPasswordDto){
-    return this.authService.resetPassword(resetPasswordDto);
+  @Post("/reset-password/:token")
+  async resetPassword(@Body()resetPasswordDto:ResetPasswordDto, @Param('token')token:string,@Req() req: Request, @Res({passthrough:true}) res: Response){
+    console.log("From reset password ",res.header);
+    return this.authService.resetPassword(resetPasswordDto,token);
   }
 }

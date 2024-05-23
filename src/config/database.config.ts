@@ -19,7 +19,7 @@ export const databaseConfig = (configService: ConfigService): TypeOrmModuleOptio
     Cart,
     CartItem,
     Order,
-    OrderItem,], // Ensure this path is correct
+    OrderItem], 
   synchronize: configService.get<boolean>('DB_SYNC'),
   // logging: true // Enable logging if needed
 });

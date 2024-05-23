@@ -4,12 +4,10 @@ import { UpdateCartDto } from './dto/update-cart.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Cart } from './entities/cart.entity';
 import { Repository } from 'typeorm';
-
 import { CartItem } from './entities/cart-item.entity';
-
-
 import { User } from '../user/entities/user.entity';
 import { Product } from '../product/entities/product.entity';
+
 
 @Injectable()
 export class CartService {
@@ -23,8 +21,6 @@ export class CartService {
     if (!product) {
       throw new NotFoundException('Product not found');
     }
-
-    // Fetch the user entity from the database
     const user = await this.userRepository.findOne({ where: { id: userId } });
     if (!user) {
       throw new NotFoundException('User not found');
@@ -63,21 +59,25 @@ export class CartService {
   }
 
 
-  async findAll(userId: number): Promise<{ cartItems: CartItem[], totalPrice: number }> {
+  
+
+  async findAll(userId: number): Promise<{ cartItems: CartItem[],totalPrice:number,totalDiscount:number,totalPriceAfterDiscount:number}> {
     const cart = await this.cartRepository.findOne({ where: { user: { id: userId } }, relations: ['items', 'items.product'] });
     if (!cart) {
       throw new NotFoundException('Cart not found');
     }
-
-    let totalPrice = 0;
+    let totalPrice:number = 0;
+    let totalPriceAfterDiscount:number=0;
     for (const cartItem of cart.items) {
       totalPrice += cartItem.product.price * cartItem.quantity;
+      totalPriceAfterDiscount+=cartItem.product.discountPrice*cartItem.quantity;
     }
-
-    return { cartItems: cart.items, totalPrice };
+    cart.totalPrice=totalPrice;
+    cart.totalDiscount=totalPrice-totalPriceAfterDiscount;
+    cart.totalPriceAfterDiscount=totalPriceAfterDiscount;
+    this.cartRepository.save(cart);
+    return {cartItems:cart.items,totalPrice:cart.totalPrice,totalDiscount:cart.totalDiscount,totalPriceAfterDiscount:cart.totalPriceAfterDiscount}
   }
-
-
 
   async findAllCart(){
     return this.cartRepository.find();
