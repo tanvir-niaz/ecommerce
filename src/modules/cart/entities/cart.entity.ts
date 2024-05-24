@@ -20,9 +20,15 @@ export class Cart {
     totalDiscount:number;
 
 
+
     @Column({default:0,nullable:true})
     totalPriceAfterDiscount:number;
 
+    @Column({nullable:true})
+    promoCode:string;
+
+    @Column({default:0})
+    priceAfterPromoCode:number;
 
     @OneToOne(()=>User,user=>user.cart)
     @JoinColumn()

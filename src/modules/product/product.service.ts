@@ -3,7 +3,7 @@ import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { Product } from './entities/product.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { MoreThan, Repository } from 'typeorm';
 import { ProductQueryDto } from './dto/productQuery.dto';
 import { error } from 'console';
 
@@ -13,9 +13,13 @@ export class ProductService {
 
   }
   async createProduct(createProductDto: CreateProductDto) {
-    let product:CreateProductDto=new Product();
-    product = this.productRepository.create(createProductDto);
-    product.discountPrice=createProductDto.price-Number(createProductDto.price*createProductDto.discount)/100;
+    const product = this.productRepository.create(createProductDto);
+    
+    const discount = createProductDto.discount ?? 0;
+    const price = createProductDto.price ?? 0;
+
+    product.discountPrice = price - (price * discount / 100);
+    
     return this.productRepository.save(product);
   }
 
@@ -24,6 +28,9 @@ export class ProductService {
 
       if (productQueryDto.category) {
         queryBuilder.andWhere('product.category = :category', { category: productQueryDto.category },);
+      }
+      if (productQueryDto.discount) {
+        queryBuilder.andWhere('product.discount = :discount', { discount: productQueryDto.discount },);
       }
       if (productQueryDto.minPrice) {
         queryBuilder.andWhere('product.price >= :minPrice', { minPrice: productQueryDto.minPrice });
@@ -37,7 +44,7 @@ export class ProductService {
       if (productQueryDto.description) {
         queryBuilder.andWhere('product.description ILIKE :searchDescription', { searchDescription: `%${productQueryDto.description}%` });
       }
-
+      queryBuilder.orderBy('product.price', productQueryDto.sortDirection);
     queryBuilder.offset((productQueryDto.page - 1) * productQueryDto.limit).limit(productQueryDto.limit);
 
     const [products, total] = await queryBuilder.getManyAndCount();
@@ -49,24 +56,56 @@ export class ProductService {
     return this.productRepository.find({where:{id}});
   }
 
-  async updateProductById(id: number, updateProductDto: UpdateProductDto) {
-    let product = await this.productRepository.findOne({ where: { id } });
-  
-    if (!product) {
-      return {statusCode:HttpStatus.NOT_FOUND,message:"Product not found"};
+
+  async getAllDiscountProduct(){
+    
+    const products= this.productRepository.find({where:{
+      discount:MoreThan(0)
+    }});
+    if(!products){
+      return {statusCode:HttpStatus.OK,error:null,message:"No products found"}
     }
-  
-    product = Object.assign(product, updateProductDto);
-    this.productRepository.save(product);
-    return {
-      statusCode:HttpStatus.ACCEPTED,error:null,message:"Product has been successfully updated"
-    }
+    return products;
   }
 
-  remove(id: number) {
-    this.productRepository.delete(id);
-    return {
-      statusCode:HttpStatus.OK,error:null,message:"Product successfully deleted"
-    }
+
+  async updateProductById(id: number, updateProductDto: UpdateProductDto) {
+      let product = await this.productRepository.findOne({ where: { id } });
+      
+      if (!product) {
+        return { statusCode: HttpStatus.NOT_FOUND, message: "Product not found" };
+      }
+      const discount = updateProductDto.discount ?? product.discount;
+      const price = updateProductDto.price ?? product.price;
+      if (discount > 0 && price) {
+        product.discountPrice = price - (price * discount / 100);
+      }
+      else if (discount > 0) {
+        product.discountPrice = product.price - (product.price * discount / 100);
+      }
+
+      product = Object.assign(product, updateProductDto);
+      await this.productRepository.save(product);
+
+      return {
+        statusCode: HttpStatus.OK,
+        error: null,
+        data:product,
+        message: "Product has been successfully updated",
+      };
   }
-}
+
+
+  async remove(id: number) {
+    const product=await this.productRepository.delete(id);
+    if(!product){
+      return {statusCode:HttpStatus.NOT_FOUND,error:null,message:"Product not found"};
+      
+    }
+    
+      return {
+        statusCode:HttpStatus.OK,error:null,message:"Product successfully deleted"
+      }
+    
+  }
+}  

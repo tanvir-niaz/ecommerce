@@ -11,6 +11,8 @@ import { databaseConfig } from './config/database.config';
 import { AuthModule } from './modules/auth/auth.module';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
+import { PromosModule } from './modules/promos/promos.module';
+
 
 @Module({
   imports: [
@@ -33,6 +35,7 @@ import { APP_GUARD } from '@nestjs/core';
     ProductModule,
     CartModule,
     OrderModule,
+    PromosModule,
   ],
   controllers: [],
   providers: [{

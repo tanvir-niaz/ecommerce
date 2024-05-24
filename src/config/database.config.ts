@@ -5,6 +5,7 @@ import { Cart } from 'src/modules/cart/entities/cart.entity';
 import { OrderItem } from 'src/modules/order/entities/order-item.entity';
 import { Order } from 'src/modules/order/entities/order.entity';
 import { Product } from 'src/modules/product/entities/product.entity';
+import { Promo } from 'src/modules/promos/entities/promo.entity';
 import { User } from 'src/modules/user/entities/user.entity';
 
 export const databaseConfig = (configService: ConfigService): TypeOrmModuleOptions => ({
@@ -19,7 +20,7 @@ export const databaseConfig = (configService: ConfigService): TypeOrmModuleOptio
     Cart,
     CartItem,
     Order,
-    OrderItem], 
+    OrderItem,Promo], 
   synchronize: configService.get<boolean>('DB_SYNC'),
   // logging: true // Enable logging if needed
 });
