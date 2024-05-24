@@ -1,6 +1,4 @@
-import { IsInt, IsOptional, IsString } from "class-validator";
-import { CreateProductDto } from "./create-product.dto";
-import { PartialType } from "@nestjs/mapped-types";
+import { IsIn, IsInt, IsOptional, IsString } from "class-validator";
 import { ApiProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 
@@ -27,6 +25,17 @@ export class ProductQueryDto {
     @IsInt()
     @Type(() => Number)
     minPrice: number;
+
+    @ApiProperty({ required: false, enum: ['ASC', 'DESC'], default: 'ASC' })
+    @IsOptional()
+    @IsIn(['ASC', 'DESC'])
+    sortDirection: 'ASC' | 'DESC';
+
+    @ApiProperty({ required: false , type: "number" })
+    @IsOptional()
+    @IsInt()
+    @Type(() => Number)
+    discount: number;
 
     @ApiProperty({ required: false , type: "number" })
     @IsOptional()

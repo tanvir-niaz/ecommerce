@@ -5,6 +5,7 @@ import { UpdateCartDto } from './dto/update-cart.dto';
 import { JwtAuthGuard } from '../../guards/user.guard';
 import { JwtAdminAuthGuard } from 'src/guards/admin.guard';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { AddPromoDto } from './dto/add-promo.dto';
 
 
 @ApiTags("cart")
@@ -17,10 +18,16 @@ export class CartController {
   
   @Post()
   @UseGuards(JwtAuthGuard)
-  
   create(@Body() addToCartDto: AddToCartDto, @Req() req:any) {
     return this.cartService.addToCart(req.user.id,addToCartDto);
+  }
 
+
+  @Post("/add-promo")
+  @ApiBearerAuth('access-token')
+  @UseGuards(JwtAuthGuard)
+  addPromoToCart(@Body()addPromoDto:AddPromoDto,@Req() req:any){
+    this.cartService.addpromoCart(addPromoDto,req.user.id)
   }
  
   @Get()

@@ -1,7 +1,9 @@
 
 import { Exclude } from "class-transformer";
+import { IsEmail } from "class-validator";
 import { Cart } from "src/modules/cart/entities/cart.entity";
 import { Order } from "src/modules/order/entities/order.entity";
+import { Promo } from "src/modules/promos/entities/promo.entity";
 import { Column, Entity, JoinColumn, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 
 
@@ -17,6 +19,7 @@ export class User {
 
     
     @Column()
+    @IsEmail()
     email:string;
 
     @Exclude()
@@ -43,5 +46,8 @@ export class User {
     ,order=>order.user,{eager:true})
     orders:Order[]
 
-    
+    @Exclude()
+    @OneToMany(()=>Promo,promo=>promo.user)
+    promos:Promo[];
+
 }

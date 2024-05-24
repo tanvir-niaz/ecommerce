@@ -7,6 +7,8 @@ import { Repository } from 'typeorm';
 import { CartItem } from './entities/cart-item.entity';
 import { User } from '../user/entities/user.entity';
 import { Product } from '../product/entities/product.entity';
+import { error } from 'console';
+import { AddPromoDto } from './dto/add-promo.dto';
 
 
 @Injectable()
@@ -14,7 +16,7 @@ export class CartService {
 
   constructor(@InjectRepository(User) private readonly userRepository:Repository<User>,@InjectRepository(Cart) private readonly cartRepository:Repository<Cart>,@InjectRepository(CartItem) private readonly cartItemRepository:Repository<CartItem>,@InjectRepository(Product) private readonly productRepository: Repository<Product> ){}
 
-  async addToCart(userId: number, addToCartDto: AddToCartDto): Promise<string> {
+  async addToCart(userId: number, addToCartDto: AddToCartDto) :Promise<object>{
     const { productId, quantity } = addToCartDto;
     
     const product = await this.productRepository.findOne({ where: { id: productId } });
@@ -47,19 +49,16 @@ export class CartService {
       cartItem.quantity = quantity;
     }
     if(cartItem.quantity>product.stockQuantity){
-      throw new  BadRequestException("Not enough stock");
+      throw new BadRequestException("Not enough stock");
       return;
     }
     user.cart=cart;
-    // console.log(cart);
     await this.userRepository.save(user);
-    // console.log(user)
     await this.cartItemRepository.save(cartItem);
-    return "Successfully added to the cart"
+    return {statusCode:HttpStatus.CREATED,error:null,message:"Successfully added to the cart"}
   }
 
 
-  
 
   async findAll(userId: number): Promise<{ cartItems: CartItem[],totalPrice:number,totalDiscount:number,totalPriceAfterDiscount:number}> {
     const cart = await this.cartRepository.findOne({ where: { user: { id: userId } }, relations: ['items', 'items.product'] });
@@ -79,18 +78,76 @@ export class CartService {
     return {cartItems:cart.items,totalPrice:cart.totalPrice,totalDiscount:cart.totalDiscount,totalPriceAfterDiscount:cart.totalPriceAfterDiscount}
   }
 
+
+
   async findAllCart(){
     return this.cartRepository.find();
   }
 
-  async findCartByUserId(user_id: number) {
+
+
+
+  async addpromoCart(addPromoDto: AddPromoDto, userId: number): Promise<object> {
+
+    const cart = await this.cartRepository.findOne({ where: { user: { id: userId } } });
+    if (!cart) {
+      throw new NotFoundException('Cart not found for the user');
+    }
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+      relations: ['promos']
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    if (!addPromoDto.name || addPromoDto.name.trim() === '') {
+
+      cart.priceAfterPromoCode = cart.totalDiscount;
+      cart.promoCode = null;
+      await this.cartRepository.save(cart);
+      return {
+        statusCode: HttpStatus.OK,
+        message: "Promo code removed, cart reset to original state",
+        priceAfterPromoCode: cart.priceAfterPromoCode
+      };
+    }
+
+    const promo = user.promos.find(promo => promo.name === addPromoDto.name);
+
+    if (promo) {
+      cart.priceAfterPromoCode = Math.round(cart.totalPrice - ((cart.totalPrice * promo.discount) / 100));
+      cart.promoCode = promo.name;
+      await this.cartRepository.save(cart);
+
+      return {
+        statusCode: HttpStatus.OK,
+        message: `Promo ${addPromoDto.name} applied successfully`,
+        priceAfterPromoCode: cart.priceAfterPromoCode
+      };
+    } else {
+      cart.priceAfterPromoCode = cart.totalDiscount;
+      cart.promoCode = null;
+      await this.cartRepository.save(cart);
+      return {
+        statusCode: HttpStatus.NOT_FOUND,
+        message: "Promo code doesn't exist"
+      };
+    }
+  }
+
+  async findCartByUserId(user_id: number):Promise<CartItem |object> {
     const cart = await this.cartRepository.findOne({ where: { user: { id: user_id } }, relations: ['items', 'items.product'] });
     if(!cart){
-      throw new NotFoundException("No cart found");
+      return {
+        statusCode:HttpStatus.NOT_FOUND,error:null,message:"No cart found"
+      }
     }
     return cart.items;
-
   }
+
+
 
   async updateCart(cartItemId: number, updateCartDto: UpdateCartDto): Promise<CartItem> {
     const { quantity } = updateCartDto;
@@ -102,6 +159,8 @@ export class CartService {
     cartItem.quantity = quantity;
     return await this.cartItemRepository.save(cartItem);
   }
+
+
 
   async deleteProductByCartId(cartId:number){
     return this.cartItemRepository.delete(cartId);

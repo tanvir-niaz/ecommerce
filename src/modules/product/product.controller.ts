@@ -30,6 +30,11 @@ export class ProductController {
     return {data:products,total};
   }
 
+  @Get("/all-offers")
+  async getDiscountProducts(){
+    return this.productService.getAllDiscountProduct();
+  }
+
   @Get(':productId')
   findOne(@Param('productId',ParseIntPipe) productId: number) {
     return this.productService.findOneProduct(productId);
