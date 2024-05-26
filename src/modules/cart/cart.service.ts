@@ -131,9 +131,11 @@ export class CartService {
     console.log(promo);
 
     if (!promo) {
-      throw new NotFoundException(
-        `Promo with name ${addPromoDto.name} not found for user with id ${userId}`
-      );
+      return {
+        statusCode: HttpStatus.NOT_FOUND,
+        error: null,
+        message: "Promo name not found",
+      };
     }
 
     if (promo.isAvailed) {

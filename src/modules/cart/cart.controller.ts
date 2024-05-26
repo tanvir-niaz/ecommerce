@@ -13,7 +13,6 @@ import {
 } from "@nestjs/common";
 import { CartService } from "./cart.service";
 import { AddToCartDto } from "./dto/create-cart.dto";
-import { UpdateCartDto } from "./dto/update-cart.dto";
 import { JwtAuthGuard } from "../../guards/user.guard";
 import { JwtAdminAuthGuard } from "src/guards/admin.guard";
 import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
