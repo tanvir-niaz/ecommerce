@@ -1,42 +1,54 @@
-
-import { Column, Entity, PrimaryGeneratedColumn, CreateDateColumn, ManyToOne, OneToMany, OneToOne, JoinColumn } from "typeorm";
+import {
+  Column,
+  Entity,
+  PrimaryGeneratedColumn,
+  CreateDateColumn,
+  ManyToOne,
+  OneToMany,
+} from "typeorm";
 import { OrderItem } from "./order-item.entity";
 import { User } from "src/modules/user/entities/user.entity";
 
-
 @Entity()
 export class Order {
-    @PrimaryGeneratedColumn()
-    id: number;
+  @PrimaryGeneratedColumn()
+  id: number;
 
-    // @Column({default:0})
-    // user_id:number;
-    @Column({nullable:true})
-    cartId:number;
+  // @Column({default:0})
+  // user_id:number;
+  @Column({ nullable: true })
+  cartId: number;
 
-    @Column()
-    shipping_address:string;
+  @Column()
+  shipping_address: string;
 
-    @Column({default:0,nullable:true})
-    totalPrice:number;
+  @Column()
+  promoCode: string;
 
-    @Column({default:0,nullable:true})
-    totalDiscount:number;
+  @Column()
+  promoCodeId: number;
 
+  @Column()
+  priceAfterPromoCode: number;
 
-    @Column({default:0,nullable:true})
-    totalPriceAfterDiscount:number;
+  @Column({ default: 0, nullable: true })
+  totalPrice: number;
 
-    @Column({nullable:true})
-    contact_number:string;
+  @Column({ default: 0, nullable: true })
+  totalDiscount: number;
 
-    @CreateDateColumn()
-    createdAt: Date;
+  @Column({ default: 0, nullable: true })
+  totalPriceAfterDiscount: number;
 
-    @ManyToOne(() => User, user => user.orders)
-    user: User;
+  @Column({ nullable: true })
+  contact_number: string;
 
+  @CreateDateColumn()
+  createdAt: Date;
 
-    @OneToMany(() => OrderItem, orderItem => orderItem.order)
-    items: OrderItem[];
+  @ManyToOne(() => User, (user) => user.orders)
+  user: User;
+
+  @OneToMany(() => OrderItem, (orderItem) => orderItem.order)
+  items: OrderItem[];
 }

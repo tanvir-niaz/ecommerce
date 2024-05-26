@@ -1,24 +1,35 @@
+import { ApiProperty } from "@nestjs/swagger";
 import { User } from "src/modules/user/entities/user.entity";
-import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from "typeorm";
 
 @Entity()
 export class Promo {
-    
-    @PrimaryGeneratedColumn()
-    id:number
+  @PrimaryGeneratedColumn()
+  id: number;
 
-    @Column()
-    name:string;
+  @Column()
+  name: string;
 
-    @Column({nullable:true})
-    discount:number;
+  @CreateDateColumn()
+  createdAt: Date;
 
-    @Column({default:false})
-    isAvailed:boolean;
+  @ApiProperty({ example: "2024-06-30" })
+  @Column({ type: "date" })
+  validTill: Date;
 
-    @ManyToOne(()=>User,user=>user.promos)
-    user:User;
+  @ApiProperty({ example: 25 })
+  @Column({ nullable: true })
+  discount: number;
 
-    @CreateDateColumn()
-    createdAt: Date;
+  @Column({ default: false })
+  isAvailed: boolean;
+
+  @ManyToOne(() => User, (user) => user.promos)
+  user: User;
 }
