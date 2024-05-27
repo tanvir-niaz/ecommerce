@@ -1,4 +1,5 @@
 import { CartItem } from "src/modules/cart/entities/cart-item.entity";
+import { Review } from "src/modules/reviews/entities/review.entity";
 import { Column, Entity, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 
 
@@ -33,4 +34,8 @@ export class Product {
     
     @OneToMany(() => Product, cartItem => cartItem.id)
     cartItem: CartItem;
+
+
+    @OneToMany(()=>Review,(review)=>review.product)
+    reviews:Review[];
 }

@@ -4,6 +4,7 @@ import { IsEmail } from "class-validator";
 import { Cart } from "src/modules/cart/entities/cart.entity";
 import { Order } from "src/modules/order/entities/order.entity";
 import { Promo } from "src/modules/promos/entities/promo.entity";
+import { Review } from "src/modules/reviews/entities/review.entity";
 import { Column, Entity, JoinColumn, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 
 
@@ -50,4 +51,7 @@ export class User {
     @OneToMany(()=>Promo,promo=>promo.user)
     promos:Promo[];
 
+    @Exclude()
+    @OneToMany(()=>Review,(reviews)=>reviews.user)
+    reviews:Review[]
 }
