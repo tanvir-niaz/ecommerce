@@ -17,8 +17,8 @@ export class OrderController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth("access-token")
   create(@Body() createOrderDto:CreateOrderDto,@Req() req:any) {
-    this.orderService.createOrder(createOrderDto,req.user.id);
-    this.orderService.sendOrderConfimationMail(req.user.id);
+    return this.orderService.createOrder(createOrderDto,req.user.id);
+    
   }
 
   @Get()

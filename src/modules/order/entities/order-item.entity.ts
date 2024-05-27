@@ -1,7 +1,7 @@
+/* eslint-disable prettier/prettier */
 import { Entity, PrimaryGeneratedColumn, ManyToOne, Column } from 'typeorm';
 import { Order } from './order.entity';
 import { Product } from 'src/modules/product/entities/product.entity';
-import { DeliveryType } from '../enum/delivery-type.enum';
 
 
 
