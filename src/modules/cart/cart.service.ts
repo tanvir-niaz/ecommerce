@@ -15,6 +15,7 @@ import { Product } from "../product/entities/product.entity";
 import { AddPromoDto } from "./dto/add-promo.dto";
 import { Promo } from "../promos/entities/promo.entity";
 import { ApiOperation, ApiResponse } from "@nestjs/swagger";
+import { STATUS_CODES } from "http";
 
 @Injectable()
 export class CartService {
@@ -94,6 +95,7 @@ export class CartService {
     if (!cart) {
       throw new NotFoundException("Cart not found");
     }
+    
     let totalPrice: number = 0;
     let totalPriceAfterDiscount: number = 0;
     for (const cartItem of cart.items) {
@@ -104,6 +106,9 @@ export class CartService {
     cart.totalPrice = totalPrice;
     cart.totalDiscount = totalPrice - totalPriceAfterDiscount;
     cart.totalPriceAfterDiscount = totalPriceAfterDiscount;
+    if(cart.items.length==0){
+      cart.priceAfterPromoCode=0;
+    }
     this.cartRepository.save(cart);
     return {
       cartItems: cart.items,
@@ -122,20 +127,43 @@ export class CartService {
       where: { id: userId },
       relations: ["promos"],
     });
+    const cart = await this.cartRepository.findOne({
+      where: { user: { id: userId } },
+      relations: ["items", "items.product"],
+    });
 
     if (!user) {
       throw new NotFoundException(`User with id ${userId} not found`);
     }
-
+    // console.log("heree",addPromoDto.name);
+    if(addPromoDto.name==""){
+      console.log("here ")
+      cart.priceAfterPromoCode=cart.totalPriceAfterDiscount;
+      this.cartRepository.save(cart);
+      return{
+        statusCode:HttpStatus.OK,
+        error:null,
+        message:"Promo code didnt applied"
+      }
+    }
+    // console.log(userId)
+    // console.log(addPromoDto.name);
     const promo = user.promos.find((promo) => promo.name === addPromoDto.name);
-    console.log(promo);
+    // console.log("promo",promo);
 
-    if (!promo) {
+    if (!promo ) {
       return {
         statusCode: HttpStatus.NOT_FOUND,
         error: null,
         message: "Promo name not found",
       };
+    }
+    if(promo.validTill<new Date()){
+      return{
+        statusCode:HttpStatus.BAD_REQUEST,
+        error:null,
+        message:"Promo is not valid"
+      }
     }
 
     if (promo.isAvailed) {
@@ -146,16 +174,14 @@ export class CartService {
       };
     }
 
-    promo.isAvailed = true;
+    // promo.isAvailed = true;
     await this.promoRepository.save(promo);
-    const cart = await this.cartRepository.findOne({
-      where: { user: { id: userId } },
-      relations: ["items", "items.product"],
-    });
+    
+    
     cart.promoCode = addPromoDto.name;
     cart.promoCodeId = promo.id;
-    cart.priceAfterPromoCode =
-      cart.totalPrice - (cart.totalPrice * promo.discount) / 100;
+    cart.priceAfterPromoCode =Math.round(
+      cart.totalPrice - (cart.totalPrice * promo.discount) / 100);
     if (!cart) {
       throw new NotFoundException(`Cart not found for user with id ${userId}`);
     }
@@ -201,5 +227,6 @@ export class CartService {
 
   async deleteProductByCartId(cartId: number) {
     return this.cartItemRepository.delete(cartId);
+    
   }
 }

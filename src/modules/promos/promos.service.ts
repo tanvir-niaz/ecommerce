@@ -7,6 +7,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { AddPromoDto } from './dto/add-promo.dto';
 import { User } from '../user/entities/user.entity';
+import { error } from 'console';
 
 @Injectable()
 export class PromosService {
@@ -18,7 +19,15 @@ export class PromosService {
 
   async create(createPromoDto: CreatePromoDto): Promise<object> {
     console.log(createPromoDto);
-    const promo=this.promoRepository.create({
+    let promo=await this.promoRepository.findOne({where:{name:createPromoDto.name}});
+    if(promo){
+      return{
+        statusCode:HttpStatus.BAD_REQUEST,
+        error:null,
+        message:"You have already a promo with that name"
+      }
+    }
+    promo=this.promoRepository.create({
       ...createPromoDto,
       validTill:new Date(createPromoDto.validTill)
     })
@@ -50,11 +59,11 @@ export class PromosService {
         message: `User already has a promo with the name ${addPromoDto.name}`
       };
     }
-
     const promoFind = await this.promoRepository.findOne({ where: { name: addPromoDto.name } });
     console.log(addPromoDto);
 
     if (!promoFind) {
+      console.log("hjello");
       throw new NotFoundException(`Promo with name ${addPromoDto.name} not found`);
     }
     const currentDate = new Date();
@@ -86,12 +95,32 @@ export class PromosService {
     return this.promoRepository.find();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} promo`;
+  async findOne(id: number) {
+    const promo=await this.promoRepository.findOne({where:{id}});
+    if(!promo){
+      return{
+        statusCode:HttpStatus.NOT_FOUND,
+        error:null,
+        message:"Promo not found by that id"
+      }
+    }
+    return{
+      statusCode:HttpStatus.ACCEPTED,
+      error:null,
+      data:promo,
+      message:"Promo found"
+    }
   }
 
-  update(id: number, updatePromoDto: UpdatePromoDto) {
-    return `This action updates a #${id} promo`;
+  async update(id: number, updatePromoDto: UpdatePromoDto) {
+    let promo=await this.promoRepository.findOne({where:{id}});
+    promo=Object.assign(promo,updatePromoDto);
+    await this.promoRepository.save(promo);
+    return{
+      statusCode:HttpStatus.ACCEPTED,
+      error:null,
+      message:"Promo has been updated"
+    }
   }
 
   async remove(id: number) {

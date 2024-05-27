@@ -64,6 +64,7 @@ export class OrderService {
     order.promoCode = cart.promoCode;
     order.promoCodeId = cart.promoCodeId;
     order.shipping_address = createOrderDto.shipping_address;
+    
     const promo = await this.promoRepository.findOne({
       where: { id: cart.promoCodeId },
     });
@@ -89,6 +90,7 @@ export class OrderService {
     await this.orderRepository.save(order);
     await this.orderItemRepository.save(orderItems);
     await this.cartItemRepository.softRemove(cart.items);
+    this.sendOrderConfimationMail(userId);
 
     return {
       statusCode: HttpStatus.CREATED,

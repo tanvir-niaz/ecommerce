@@ -42,13 +42,14 @@ export class PromosController {
   }
 
   @Get(":id")
-  findOne(@Param("id") id: string) {
-    return this.promosService.findOne(+id);
+  findOne(@Param("id",ParseIntPipe) id: number) {
+    return this.promosService.findOne(id);
   }
 
   @Patch(":id")
-  update(@Param("id") id: string, @Body() updatePromoDto: UpdatePromoDto) {
-    return this.promosService.update(+id, updatePromoDto);
+  @UseGuards(JwtAdminAuthGuard)
+  update(@Param("id",ParseIntPipe) id: number, @Body() updatePromoDto: UpdatePromoDto) {
+    return this.promosService.update(id, updatePromoDto);
   }
 
   @Delete(":id")

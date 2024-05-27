@@ -34,7 +34,7 @@ export class CartController {
   @ApiBearerAuth("access-token")
   @UseGuards(JwtAuthGuard)
   addPromoToCart(@Body() addPromoDto: AddPromoDto, @Req() req: any) {
-    this.cartService.addpromoCart(addPromoDto, req.user.id);
+    return this.cartService.addpromoCart(addPromoDto, req.user.id);
   }
 
   @Get()
