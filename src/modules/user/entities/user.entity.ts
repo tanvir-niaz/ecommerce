@@ -38,6 +38,7 @@ export class User {
     })
     token:string;
 
+    @Exclude()
     @OneToOne(()=>Cart,cart=>cart.user,{eager:true})
     @JoinColumn()
     cart:Cart
@@ -52,6 +53,6 @@ export class User {
     promos:Promo[];
 
     @Exclude()
-    @OneToMany(()=>Review,(reviews)=>reviews.user)
+    @OneToMany(()=>Review,(reviews)=>reviews.user,{ cascade: true, onDelete: 'CASCADE' })
     reviews:Review[]
 }

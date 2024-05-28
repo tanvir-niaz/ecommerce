@@ -4,6 +4,7 @@ import { CreateReviewDto } from './dto/create-review.dto';
 import { UpdateReviewDto } from './dto/update-review.dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/guards/user.guard';
+import { JwtAdminAuthGuard } from 'src/guards/admin.guard';
 
 @Controller('reviews')
 @ApiBearerAuth("access-token")
@@ -17,23 +18,14 @@ export class ReviewsController {
     return this.reviewsService.create(createReviewDto,req.user.id);
   }
 
-  // @Get()
-  // findAll() {
-  //   return this.reviewsService.findAll();
-  // }
-
   @Get(':Productid')
   findOne(@Param('Productid',ParseIntPipe) Productid: number) {
     return this.reviewsService.getProductReviews(Productid);
   }
 
-  // @Patch(':id')
-  // update(@Param('id') id: string, @Body() updateReviewDto: UpdateReviewDto) {
-  //   return this.reviewsService.update(+id, updateReviewDto);
-  // }
-
-  // @Delete(':id')
-  // remove(@Param('id') id: string) {
-  //   return this.reviewsService.remove(+id);
-  // }
+  @Delete(':id')
+  @UseGuards(JwtAdminAuthGuard)
+  remove(@Param('id',ParseIntPipe) id: number) {
+    return this.reviewsService.removeReviewByProductId(id);
+  }
 }

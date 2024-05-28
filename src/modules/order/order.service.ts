@@ -33,11 +33,13 @@ export class OrderService {
     @InjectRepository(Promo)
     private readonly promoRepository: Repository<Promo>,
   ) {}
+
+
   async createOrder(
     createOrderDto: CreateOrderDto,
     userId: number,
   ): Promise<object> {
-    const cart = await this.cartRepository.findOne({
+    const cart:Cart = await this.cartRepository.findOne({
       where: { user: { id: userId } },
       relations: ["items", "items.product", "user"],
     });
@@ -65,7 +67,7 @@ export class OrderService {
     order.promoCodeId = cart.promoCodeId;
     order.shipping_address = createOrderDto.shipping_address;
     
-    const promo = await this.promoRepository.findOne({
+    const promo :Promo= await this.promoRepository.findOne({
       where: { id: cart.promoCodeId },
     });
 
@@ -86,6 +88,8 @@ export class OrderService {
       await this.productRepository.save(cartItem.product);
     }
     cart.priceAfterPromoCode = 0;
+    cart.promoCode=null;
+    cart.promoCodeId=null;
     await this.cartRepository.save(cart);
     await this.orderRepository.save(order);
     await this.orderItemRepository.save(orderItems);
@@ -117,18 +121,17 @@ export class OrderService {
   }
 
   async findOrdersByOrderId(orderId: number): Promise<Order[]> {
-    const order = await this.orderRepository.find({
+    const order:Order[] = await this.orderRepository.find({
       where: { id: orderId },
     });
     if (!order) {
       throw new NotFoundException("Order id doesnt exist");
     }
-
     return order;
   }
 
   async removeOrder(orderId: number): Promise<object> {
-    const order = await this.orderRepository.findOne({
+    const order :Order= await this.orderRepository.findOne({
       where: { id: orderId },
       relations: ["items"],
     });
@@ -139,11 +142,6 @@ export class OrderService {
         message: "OrderId not found",
       };
     }
-
-    const orderItemIds = order.items.map((item) => item.id);
-    if (orderItemIds.length > 0) {
-      await this.orderItemRepository.delete(orderItemIds);
-    }
     await this.orderRepository.delete(orderId);
     return {
       statusCode: HttpStatus.OK,
@@ -153,12 +151,13 @@ export class OrderService {
   }
 
   async sendOrderConfimationMail(userId: number): Promise<object> {
-    const user = await this.userRepository.findOne({ where: { id: userId } });
+    const user :User= await this.userRepository.findOne({ where: { id: userId } });
     await this.mailerService.sendMail({
       to: user.email,
       subject: "Order Confirmation mail",
       html: `Dear ${user.name},<br> Your order has been successfully created`,
     });
+    
     return {
       statusCode: HttpStatus.OK,
       error: null,

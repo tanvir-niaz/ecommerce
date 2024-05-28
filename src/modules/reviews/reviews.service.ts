@@ -1,6 +1,5 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { CreateReviewDto } from './dto/create-review.dto';
-import { UpdateReviewDto } from './dto/update-review.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Product } from '../product/entities/product.entity';
 import { Repository } from 'typeorm';
@@ -13,9 +12,9 @@ export class ReviewsService {
   constructor(@InjectRepository(Product) private productRepository:Repository<Product>,@InjectRepository(User) private readonly userRepository: Repository<User>,
   @InjectRepository(Review) private reviewRepository:Repository<Review> 
 ){}
-  async create(createReviewDto: CreateReviewDto,userId:number) {
-    const product=await this.productRepository.findOne({where:{id:createReviewDto.product_id}});
-    const user=await this.userRepository.findOne({where:{id:userId}});
+  async create(createReviewDto: CreateReviewDto,userId:number) :Promise<Object>{
+    const product:Product=await this.productRepository.findOne({where:{id:createReviewDto.product_id}});
+    const user:User=await this.userRepository.findOne({where:{id:userId}});
     if(!product){
       return{
         statusCode:HttpStatus.NOT_FOUND,
@@ -33,17 +32,13 @@ export class ReviewsService {
     return{
       statusCode:HttpStatus.CREATED,
       error:null,
-      message:"Review has been added to product ${product.name}"
+      message:`Review has been added to product ${product.name}`
     }
 
   }
 
-  findAll() {
-    return `This action returns all reviews`;
-  }
-
   async getProductReviews(productId: number): Promise<any> {
-    const reviews = await this.reviewRepository.find({ 
+    const reviews:Review[] = await this.reviewRepository.find({ 
         where: { product: { id: productId } },
         relations: ['user']
     });
@@ -77,12 +72,21 @@ export class ReviewsService {
     }));
 }
 
-
-  update(id: number, updateReviewDto: UpdateReviewDto) {
-    return `This action updates a #${id} review`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} review`;
+  async removeReviewByProductId(id: number) {
+    const review:Review=await this.reviewRepository.findOne({where:{id}});
+    if(!review){
+      return{
+        statusCode:HttpStatus.NOT_FOUND,
+        error:null,
+        message:"Review not found"
+      }
+    }
+    await this.reviewRepository.delete(id);
+    
+    return{
+      statusCode:HttpStatus.OK,
+      error:null,
+      message:"Review deleted successfully"
+    }
   }
 }

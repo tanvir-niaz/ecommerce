@@ -32,10 +32,10 @@ export class Product {
     category:string;
 
     
-    @OneToMany(() => Product, cartItem => cartItem.id)
+    @OneToMany(() => Product, cartItem => cartItem.id,{cascade:true,onDelete:"CASCADE"})
     cartItem: CartItem;
 
 
-    @OneToMany(()=>Review,(review)=>review.product)
+    @OneToMany(()=>Review,(review)=>review.product,{cascade:true,onDelete:'CASCADE'})
     reviews:Review[];
 }

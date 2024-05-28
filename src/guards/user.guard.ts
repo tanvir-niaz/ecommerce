@@ -39,7 +39,7 @@ export class JwtAuthGuard implements CanActivate {
       decodedToken.email !== user.email ||
       decodedToken.password!==user.password
     ) {
-      throw new UnauthorizedException('Token data does not match user data');
+      throw new UnauthorizedException();
     }
     
     request.user = user;

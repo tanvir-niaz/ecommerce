@@ -12,18 +12,21 @@ export class ProductService {
   constructor(@InjectRepository(Product) private readonly productRepository:Repository<Product>){
 
   }
-  async createProduct(createProductDto: CreateProductDto) {
+  async createProduct(createProductDto: CreateProductDto) : Promise<Product> {
     const product = this.productRepository.create(createProductDto);
     
-    const discount = createProductDto.discount ?? 0;
-    const price = createProductDto.price ?? 0;
-
-    product.discountPrice = price - (price * discount / 100);
-    
+    const discount : number = createProductDto.discount ?? 0;
+    const price : number = createProductDto.price ?? 0;
+    if(discount==0){
+      product.discountPrice=product.price;
+    }
+    else{
+      product.discountPrice = price - (price * discount / 100);
+    }
     return this.productRepository.save(product);
   }
 
-  async findAllProducts(productQueryDto:ProductQueryDto):Promise<[Product[],number]> {
+  async findAllProducts(productQueryDto:ProductQueryDto) : Promise<[Product[],number]> {
     const queryBuilder = this.productRepository.createQueryBuilder('product');
 
       if (productQueryDto.category) {
@@ -57,9 +60,9 @@ export class ProductService {
   }
 
 
-  async getAllDiscountProduct(){
+  async getAllDiscountProduct() : Promise<Product[] | object>{
     
-    const products= this.productRepository.find({where:{
+    const products:Product[]=await this.productRepository.find({where:{
       discount:MoreThan(0)
     }});
     if(!products){
@@ -69,14 +72,14 @@ export class ProductService {
   }
 
 
-  async updateProductById(id: number, updateProductDto: UpdateProductDto) {
-      let product = await this.productRepository.findOne({ where: { id } });
+  async updateProductById(id: number, updateProductDto: UpdateProductDto) : Promise<object> {
+      let product:Product = await this.productRepository.findOne({ where: { id } });
       
       if (!product) {
         return { statusCode: HttpStatus.NOT_FOUND, message: "Product not found" };
       }
-      const discount = updateProductDto.discount ?? product.discount;
-      const price = updateProductDto.price ?? product.price;
+      const discount : number = updateProductDto.discount ?? product.discount;
+      const price : number = updateProductDto.price ?? product.price;
       if (discount > 0 && price) {
         product.discountPrice = price - (price * discount / 100);
       }
@@ -96,16 +99,13 @@ export class ProductService {
   }
 
 
-  async remove(id: number) {
+  async remove(id: number) :Promise<object>{
     const product=await this.productRepository.delete(id);
     if(!product){
       return {statusCode:HttpStatus.NOT_FOUND,error:null,message:"Product not found"};
-      
     }
-    
-      return {
-        statusCode:HttpStatus.OK,error:null,message:"Product successfully deleted"
-      }
-    
+    return {
+      statusCode:HttpStatus.OK,error:null,message:"Product successfully deleted"
+    }
   }
 }  

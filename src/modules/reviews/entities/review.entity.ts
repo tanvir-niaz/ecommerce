@@ -19,10 +19,10 @@ export class Review {
     @IsInt()
     rating:number;
 
-    @ManyToOne(()=>User,(user)=>user.reviews)
+    @ManyToOne(()=>User,(user)=>user.reviews,{onDelete:'CASCADE'})
     user:User;
 
-    @ManyToOne(()=>Product,(product)=>product.reviews)
+    @ManyToOne(()=>Product,(product)=>product.reviews,{onDelete:'CASCADE'})
     product:Product;
 
 
