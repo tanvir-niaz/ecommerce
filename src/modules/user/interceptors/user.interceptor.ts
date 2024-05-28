@@ -14,7 +14,7 @@ export class userInterceptor implements NestInterceptor {
     context: ExecutionContext,
     next: CallHandler<any>,
   ): Observable<any> {
-    console.log("From the interceptor");
+    // console.log("From the interceptor");
 
     return next.handle().pipe(
       map((data) => {

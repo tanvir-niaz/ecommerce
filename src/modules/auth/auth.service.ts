@@ -3,7 +3,6 @@ import { BadRequestException, ConflictException, HttpStatus, Inject, Injectable,
 import { ConfigService } from "@nestjs/config";
 import { JwtService } from "@nestjs/jwt";
 import { InjectRepository } from "@nestjs/typeorm";
-
 import { Repository } from "typeorm";
 import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';

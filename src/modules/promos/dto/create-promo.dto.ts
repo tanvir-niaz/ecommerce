@@ -6,10 +6,9 @@ export class CreatePromoDto {
   @IsNotEmpty()
   name: string;
 
-  @ApiProperty({ example: "2024-06-30" })
+  @ApiProperty({ type: Date })
   @IsNotEmpty()
-  @IsDateString()
-  validTill: string;
+  validTill: Date;
 
   @ApiProperty({ example: 25 })
   @IsNotEmpty()

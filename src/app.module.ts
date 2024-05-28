@@ -12,6 +12,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 import { PromosModule } from './modules/promos/promos.module';
+import { ReviewsModule } from './modules/reviews/reviews.module';
 
 
 @Module({
@@ -36,6 +37,7 @@ import { PromosModule } from './modules/promos/promos.module';
     CartModule,
     OrderModule,
     PromosModule,
+    ReviewsModule,
   ],
   controllers: [],
   providers: [{

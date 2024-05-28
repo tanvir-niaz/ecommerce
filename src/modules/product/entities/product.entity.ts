@@ -1,4 +1,5 @@
 import { CartItem } from "src/modules/cart/entities/cart-item.entity";
+import { Review } from "src/modules/reviews/entities/review.entity";
 import { Column, Entity, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 
 
@@ -31,6 +32,10 @@ export class Product {
     category:string;
 
     
-    @OneToMany(() => Product, cartItem => cartItem.id)
+    @OneToMany(() => Product, cartItem => cartItem.id,{cascade:true,onDelete:"CASCADE"})
     cartItem: CartItem;
+
+
+    @OneToMany(()=>Review,(review)=>review.product,{cascade:true,onDelete:'CASCADE'})
+    reviews:Review[];
 }

@@ -22,10 +22,10 @@ export class Order {
   @Column()
   shipping_address: string;
 
-  @Column()
+  @Column({nullable:true})
   promoCode: string;
 
-  @Column()
+  @Column({nullable:true})
   promoCodeId: number;
 
   @Column()
@@ -49,6 +49,6 @@ export class Order {
   @ManyToOne(() => User, (user) => user.orders)
   user: User;
 
-  @OneToMany(() => OrderItem, (orderItem) => orderItem.order)
+  @OneToMany(() => OrderItem, (orderItem) => orderItem.order,{cascade:true,onDelete:"CASCADE"})
   items: OrderItem[];
 }

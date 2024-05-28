@@ -35,7 +35,7 @@ export class AuthController {
 
   @Post("/reset-password/:token")
   async resetPassword(@Body()resetPasswordDto:ResetPasswordDto, @Param('token')token:string,@Req() req: Request, @Res({passthrough:true}) res: Response){
-    console.log("From reset password ",res.header);
+    // console.log("From reset password ",res.header);
     return this.authService.resetPassword(resetPasswordDto,token);
   }
 }

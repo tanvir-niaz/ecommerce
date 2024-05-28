@@ -18,8 +18,8 @@ export class PromosService {
   ) {}
 
   async create(createPromoDto: CreatePromoDto): Promise<object> {
-    console.log(createPromoDto);
-    let promo=await this.promoRepository.findOne({where:{name:createPromoDto.name}});
+    // console.log(createPromoDto);
+    let promo:Promo=await this.promoRepository.findOne({where:{name:createPromoDto.name}});
     if(promo){
       return{
         statusCode:HttpStatus.BAD_REQUEST,
@@ -29,7 +29,7 @@ export class PromosService {
     }
     promo=this.promoRepository.create({
       ...createPromoDto,
-      validTill:new Date(createPromoDto.validTill)
+      validTill:new Date(createPromoDto.validTill),
     })
 
     await this.promoRepository.save(promo);
@@ -41,8 +41,8 @@ export class PromosService {
     }
   }
 
-  async addPromoByUser(addPromoDto: AddPromoDto, userId: number) {
-    const user = await this.userRepository.findOne({
+  async addPromoByUser(addPromoDto: AddPromoDto, userId: number):Promise<object> {
+    const user :User= await this.userRepository.findOne({
       where: { id: userId },
       relations: ['promos']
     });
@@ -50,7 +50,7 @@ export class PromosService {
     if (!user) {
       throw new NotFoundException(`User with id ${userId} not found`);
     }
-    const existingPromo = user.promos.find(promo => promo.name === addPromoDto.name);
+    const existingPromo:Promo = user.promos.find(promo => promo.name === addPromoDto.name);
 
     if (existingPromo) {
       return {
@@ -59,28 +59,29 @@ export class PromosService {
         message: `User already has a promo with the name ${addPromoDto.name}`
       };
     }
-    const promoFind = await this.promoRepository.findOne({ where: { name: addPromoDto.name } });
-    console.log(addPromoDto);
-
+    const promoFind:Promo = await this.promoRepository.findOne({ where: { name: addPromoDto.name } });
     if (!promoFind) {
-      console.log("hjello");
-      throw new NotFoundException(`Promo with name ${addPromoDto.name} not found`);
+      return{
+        statusCode:HttpStatus.NOT_FOUND,
+        error:null,
+        message:"Promo not found"
+      }
     }
-    const currentDate = new Date();
-    if (currentDate > promoFind.validTill) {
-      return {
-        statusCode: HttpStatus.BAD_REQUEST,
-        error: 'Promo expired',
-        message: `Promo with name ${addPromoDto.name} has expired`
-      };
-    }
+    
     const promo = new Promo();
     promo.name = addPromoDto.name;
     promo.user = user;
     promo.discount = promoFind.discount;
     promo.validTill= promoFind.validTill;
-    console.log(promo.isAvailed);
-
+    const currentDate = new Date();
+    
+    if (currentDate > new Date(promo.validTill)) {
+      return {
+        statusCode: HttpStatus.BAD_REQUEST,
+        error: 'Promo expired',
+        message: `Promo with name ${addPromoDto.name} has expired`,
+      };
+    }
     if (promo.isAvailed === undefined) {
       await this.promoRepository.save(promo);
     }
@@ -96,7 +97,7 @@ export class PromosService {
   }
 
   async findOne(id: number) {
-    const promo=await this.promoRepository.findOne({where:{id}});
+    const promo:Promo=await this.promoRepository.findOne({where:{id}});
     if(!promo){
       return{
         statusCode:HttpStatus.NOT_FOUND,
@@ -112,8 +113,8 @@ export class PromosService {
     }
   }
 
-  async update(id: number, updatePromoDto: UpdatePromoDto) {
-    let promo=await this.promoRepository.findOne({where:{id}});
+  async update(id: number, updatePromoDto: UpdatePromoDto) :Promise<object>{
+    let promo:Promo=await this.promoRepository.findOne({where:{id}});
     promo=Object.assign(promo,updatePromoDto);
     await this.promoRepository.save(promo);
     return{
@@ -123,8 +124,8 @@ export class PromosService {
     }
   }
 
-  async remove(id: number) {
-    const promo = await this.promoRepository.findOne({ where: { id } });
+  async remove(id: number):Promise<Object> {
+    const promo:Promo = await this.promoRepository.findOne({ where: { id } });
     if (!promo) {
       return {
         statusCode: HttpStatus.NOT_FOUND,
@@ -132,6 +133,7 @@ export class PromosService {
       }
     }
     await this.promoRepository.delete(id);
+    await this.promoRepository.delete({name:promo.name});
     return {
       statusCode: HttpStatus.OK,
       error: null,

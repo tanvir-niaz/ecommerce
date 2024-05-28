@@ -14,8 +14,7 @@ import { User } from "../user/entities/user.entity";
 import { Product } from "../product/entities/product.entity";
 import { AddPromoDto } from "./dto/add-promo.dto";
 import { Promo } from "../promos/entities/promo.entity";
-import { ApiOperation, ApiResponse } from "@nestjs/swagger";
-import { STATUS_CODES } from "http";
+
 
 @Injectable()
 export class CartService {
@@ -33,18 +32,18 @@ export class CartService {
   async addToCart(userId: number, addToCartDto: AddToCartDto): Promise<object> {
     const { productId, quantity } = addToCartDto;
 
-    const product = await this.productRepository.findOne({
+    const product:Product = await this.productRepository.findOne({
       where: { id: productId },
     });
     if (!product) {
       throw new NotFoundException("Product not found");
     }
-    const user = await this.userRepository.findOne({ where: { id: userId } });
+    const user : User = await this.userRepository.findOne({ where: { id: userId } });
     if (!user) {
       throw new NotFoundException("User not found");
     }
 
-    let cart = await this.cartRepository.findOne({
+    let cart:Cart = await this.cartRepository.findOne({
       where: { user: { id: userId } },
       relations: ["user", "items", "items.product"],
     });
@@ -55,7 +54,7 @@ export class CartService {
       await this.cartRepository.save(cart);
     }
 
-    let cartItem = await this.cartItemRepository.findOne({
+    let cartItem:CartItem = await this.cartItemRepository.findOne({
       where: { cart: { id: cart.id }, product: { id: product.id } },
     });
 
@@ -107,8 +106,20 @@ export class CartService {
     cart.totalDiscount = totalPrice - totalPriceAfterDiscount;
     cart.totalPriceAfterDiscount = totalPriceAfterDiscount;
     if(cart.items.length==0){
-      cart.priceAfterPromoCode=0;
+      cart.priceAfterPromoCode=cart.totalPriceAfterDiscount;
     }
+    
+    const promo:Promo=await this.promoRepository.findOne({where:{name:cart.promoCode}});
+    if(!promo){
+      console.log("promo not found")
+      cart.promoCode=null;
+      cart.promoCodeId=null;
+      cart.priceAfterPromoCode=cart.totalPriceAfterDiscount;
+    }
+    if(cart.priceAfterPromoCode==0){
+      cart.priceAfterPromoCode=cart.totalPriceAfterDiscount;
+    }
+    console.log(cart);
     this.cartRepository.save(cart);
     return {
       cartItems: cart.items,
@@ -123,11 +134,11 @@ export class CartService {
     return this.cartRepository.find();
   }
   async addpromoCart(addPromoDto: AddPromoDto, userId: number): Promise<any> {
-    const user = await this.userRepository.findOne({
+    const user: User = await this.userRepository.findOne({
       where: { id: userId },
       relations: ["promos"],
     });
-    const cart = await this.cartRepository.findOne({
+    const cart :Cart= await this.cartRepository.findOne({
       where: { user: { id: userId } },
       relations: ["items", "items.product"],
     });
@@ -135,22 +146,19 @@ export class CartService {
     if (!user) {
       throw new NotFoundException(`User with id ${userId} not found`);
     }
-    // console.log("heree",addPromoDto.name);
     if(addPromoDto.name==""){
-      console.log("here ")
       cart.priceAfterPromoCode=cart.totalPriceAfterDiscount;
+      cart.promoCode=null;
+      cart.promoCodeId=null;
       this.cartRepository.save(cart);
       return{
         statusCode:HttpStatus.OK,
         error:null,
         message:"Promo code didnt applied"
+
       }
     }
-    // console.log(userId)
-    // console.log(addPromoDto.name);
-    const promo = user.promos.find((promo) => promo.name === addPromoDto.name);
-    // console.log("promo",promo);
-
+    const promo:Promo = user.promos.find((promo) => promo.name === addPromoDto.name);
     if (!promo ) {
       return {
         statusCode: HttpStatus.NOT_FOUND,
@@ -158,7 +166,7 @@ export class CartService {
         message: "Promo name not found",
       };
     }
-    if(promo.validTill<new Date()){
+    if(new Date(promo.validTill)<new Date()){
       return{
         statusCode:HttpStatus.BAD_REQUEST,
         error:null,
@@ -178,7 +186,7 @@ export class CartService {
     await this.promoRepository.save(promo);
     
     
-    cart.promoCode = addPromoDto.name;
+    cart.promoCode = promo.name;
     cart.promoCodeId = promo.id;
     cart.priceAfterPromoCode =Math.round(
       cart.totalPrice - (cart.totalPrice * promo.discount) / 100);
@@ -195,7 +203,7 @@ export class CartService {
   }
 
   async findCartByUserId(user_id: number): Promise<CartItem | object> {
-    const cart = await this.cartRepository.findOne({
+    const cart :Cart= await this.cartRepository.findOne({
       where: { user: { id: user_id } },
       relations: ["items", "items.product"],
     });
@@ -227,6 +235,5 @@ export class CartService {
 
   async deleteProductByCartId(cartId: number) {
     return this.cartItemRepository.delete(cartId);
-    
   }
 }
