@@ -37,6 +37,7 @@ export class PromosController {
   }
 
   @Get()
+  @UseGuards(JwtAuthGuard)
   findAll() {
     return this.promosService.findAll();
   }

@@ -29,7 +29,7 @@ export class User {
 
 
     @Exclude()
-    @Column({ default: "user" }) // Set default value to "user"
+    @Column({ default: "user" }) 
     roles: string;
 
     @Exclude()
