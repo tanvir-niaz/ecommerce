@@ -13,7 +13,7 @@ async function bootstrap() {
     swaggerConfig
   );
   SwaggerModule.setup("api", app, document);
-  app.use(csurf())
+  // app.use(csurf())
   await app.listen(3000);
 }
 bootstrap();

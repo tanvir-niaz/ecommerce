@@ -5,8 +5,15 @@ import {
   CreateDateColumn,
   Entity,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
 } from "typeorm";
+import { User_promo_usage } from "./user_promo_usage";
+
+enum DiscountOn {
+  TotalPrice = 'totalPrice',
+  DeliveryCharge = 'deliveryCharge',
+}
 
 @Entity()
 export class Promo {
@@ -14,7 +21,7 @@ export class Promo {
   id: number;
 
   @Column()
-  name: string;
+  code: string;
 
   @CreateDateColumn()
   createdAt: Date;
@@ -27,9 +34,18 @@ export class Promo {
   @Column({ nullable: true })
   discount: number;
 
-  @Column({ default: false })
-  isAvailed: boolean;
+  @Column({default:1})
+  usage_limit: number;
 
-  @ManyToOne(() => User, (user) => user.promos)
-  user: User;
+
+  @Column({ type: 'enum', enum: DiscountOn, default: DiscountOn.TotalPrice })
+  discount_on: DiscountOn;
+   
+
+  @Column()
+  min_price:number;
+
+  @OneToMany(()=>User_promo_usage,(user_promo_usage)=>user_promo_usage.promo)
+  user_promo_usage:User_promo_usage[];
 }
+

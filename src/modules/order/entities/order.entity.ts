@@ -22,11 +22,11 @@ export class Order {
   @Column()
   shipping_address: string;
 
-  @Column()
-  promoCode: string;
+  // @Column()
+  // promoCode: string;
 
-  @Column()
-  promoCodeId: number;
+  // @Column()
+  // promoCodeId: number;
 
   @Column()
   priceAfterPromoCode: number;

@@ -61,18 +61,18 @@ export class OrderService {
     order.totalDiscount = cart.totalDiscount;
     order.totalPriceAfterDiscount = cart.totalPriceAfterDiscount;
     order.priceAfterPromoCode = cart.priceAfterPromoCode;
-    order.promoCode = cart.promoCode;
-    order.promoCodeId = cart.promoCodeId;
+    // order.promoCode = cart.promoCode;
+    // order.promoCodeId = cart.promoCodeId;
     order.shipping_address = createOrderDto.shipping_address;
     
     const promo = await this.promoRepository.findOne({
       where: { id: cart.promoCodeId },
     });
 
-    if (promo) {
-      (await promo).isAvailed = true;
-      await this.promoRepository.save(promo);
-    }
+    // if (promo) {
+    //   (await promo).isAvailed = true;
+    //   await this.promoRepository.save(promo);
+    // }
     const orderItems: OrderItem[] = cart.items.map((cartItem) => {
       const orderItem = new OrderItem();
       orderItem.order = order;

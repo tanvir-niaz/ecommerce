@@ -123,69 +123,69 @@ export class CartService {
     return this.cartRepository.find();
   }
   async addpromoCart(addPromoDto: AddPromoDto, userId: number): Promise<any> {
-    const user = await this.userRepository.findOne({
-      where: { id: userId },
-      relations: ["promos"],
-    });
-    const cart = await this.cartRepository.findOne({
-      where: { user: { id: userId } },
-      relations: ["items", "items.product"],
-    });
+  //   const user = await this.userRepository.findOne({
+  //     where: { id: userId },
+  //     relations: ["promos"],
+  //   });
+  //   const cart = await this.cartRepository.findOne({
+  //     where: { user: { id: userId } },
+  //     relations: ["items", "items.product"],
+  //   });
 
-    if (!user) {
-      throw new NotFoundException(`User with id ${userId} not found`);
-    }
-    // console.log("heree",addPromoDto.name);
-    if(addPromoDto.name==""){
-      console.log("here ")
-      cart.priceAfterPromoCode=cart.totalPriceAfterDiscount;
-      this.cartRepository.save(cart);
-      return{
-        statusCode:HttpStatus.OK,
-        error:null,
-        message:"Promo code didnt applied"
-      }
-    }
-    // console.log(userId)
-    // console.log(addPromoDto.name);
-    const promo = user.promos.find((promo) => promo.name === addPromoDto.name);
-    // console.log("promo",promo);
+  //   if (!user) {
+  //     throw new NotFoundException(`User with id ${userId} not found`);
+  //   }
+  //   // console.log("heree",addPromoDto.name);
+  //   if(addPromoDto.name==""){
+  //     console.log("here ")
+  //     cart.priceAfterPromoCode=cart.totalPriceAfterDiscount;
+  //     this.cartRepository.save(cart);
+  //     return{
+  //       statusCode:HttpStatus.OK,
+  //       error:null,
+  //       message:"Promo code didnt applied"
+  //     }
+  //   }
+  //   // console.log(userId)
+  //   // console.log(addPromoDto.name);
+  //   const promo = user.promos.find((promo) => promo.name === addPromoDto.name);
+  //   // console.log("promo",promo);
 
-    if (!promo ) {
-      return {
-        statusCode: HttpStatus.NOT_FOUND,
-        error: null,
-        message: "Promo name not found",
-      };
-    }
-    if(promo.validTill<new Date()){
-      return{
-        statusCode:HttpStatus.BAD_REQUEST,
-        error:null,
-        message:"Promo is not valid"
-      }
-    }
+  //   if (!promo ) {
+  //     return {
+  //       statusCode: HttpStatus.NOT_FOUND,
+  //       error: null,
+  //       message: "Promo name not found",
+  //     };
+  //   }
+  //   if(promo.validTill<new Date()){
+  //     return{
+  //       statusCode:HttpStatus.BAD_REQUEST,
+  //       error:null,
+  //       message:"Promo is not valid"
+  //     }
+  //   }
 
-    if (promo.isAvailed) {
-      return {
-        statusCode: HttpStatus.BAD_REQUEST,
-        error: "Promo already used",
-        message: `Promo with name ${addPromoDto.name} has already been used by the user`,
-      };
-    }
+  //   // if (promo.isAvailed) {
+  //   //   return {
+  //   //     statusCode: HttpStatus.BAD_REQUEST,
+  //   //     error: "Promo already used",
+  //   //     message: `Promo with name ${addPromoDto.name} has already been used by the user`,
+  //   //   };
+  //   // }
 
-    // promo.isAvailed = true;
-    await this.promoRepository.save(promo);
+  //   // promo.isAvailed = true;
+  //   await this.promoRepository.save(promo);
     
     
-    cart.promoCode = addPromoDto.name;
-    cart.promoCodeId = promo.id;
-    cart.priceAfterPromoCode =Math.round(
-      cart.totalPrice - (cart.totalPrice * promo.discount) / 100);
-    if (!cart) {
-      throw new NotFoundException(`Cart not found for user with id ${userId}`);
-    }
-    await this.cartRepository.save(cart);
+  //   cart.promoCode = addPromoDto.name;
+  //   cart.promoCodeId = promo.id;
+  //   cart.priceAfterPromoCode =Math.round(
+  //     cart.totalPrice - (cart.totalPrice * promo.discount) / 100);
+  //   if (!cart) {
+  //     throw new NotFoundException(`Cart not found for user with id ${userId}`);
+  //   }
+  //   await this.cartRepository.save(cart);
 
     return {
       statusCode: HttpStatus.OK,
