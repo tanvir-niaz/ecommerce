@@ -14,6 +14,7 @@ import { User } from "../user/entities/user.entity";
 import { Product } from "../product/entities/product.entity";
 import { Cart } from "../cart/entities/cart.entity";
 import { Promo } from "../promos/entities/promo.entity";
+import { User_promo_usage } from "../promos/entities/user_promo_usage";
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { Promo } from "../promos/entities/promo.entity";
       OrderItem,
       CartItem,
       Promo,
+      User_promo_usage
     ]),
     CartModule,
     JwtModule,

@@ -15,6 +15,7 @@ import { User } from "../user/entities/user.entity";
 import { CartItem } from "../cart/entities/cart-item.entity";
 import { MailerService } from "@nestjs-modules/mailer";
 import { Promo } from "../promos/entities/promo.entity";
+import { User_promo_usage } from "../promos/entities/user_promo_usage";
 
 @Injectable()
 export class OrderService {
@@ -32,6 +33,9 @@ export class OrderService {
     private readonly cartItemRepository: Repository<Cart>,
     @InjectRepository(Promo)
     private readonly promoRepository: Repository<Promo>,
+    @InjectRepository(User_promo_usage)
+    private readonly user_promo_usage: Repository<User_promo_usage
+    >,
   ) {}
   async createOrder(
     createOrderDto: CreateOrderDto,
@@ -57,22 +61,17 @@ export class OrderService {
     order.user = cart.user;
     order.contact_number = createOrderDto.contact_number;
     order.cartId = cart.id;
-    order.totalPrice = cart.totalPrice;
+    order.subTotal = cart.subTotal;
     order.totalDiscount = cart.totalDiscount;
     order.totalPriceAfterDiscount = cart.totalPriceAfterDiscount;
     order.priceAfterPromoCode = cart.priceAfterPromoCode;
-    // order.promoCode = cart.promoCode;
-    // order.promoCodeId = cart.promoCodeId;
+    order.promoCodeId = +cart.promoCodeId;
     order.shipping_address = createOrderDto.shipping_address;
+    order.totalPrice=cart.totalPrice;
     
     const promo = await this.promoRepository.findOne({
       where: { id: cart.promoCodeId },
     });
-
-    // if (promo) {
-    //   (await promo).isAvailed = true;
-    //   await this.promoRepository.save(promo);
-    // }
     const orderItems: OrderItem[] = cart.items.map((cartItem) => {
       const orderItem = new OrderItem();
       orderItem.order = order;
@@ -85,11 +84,29 @@ export class OrderService {
       cartItem.product.stockQuantity -= cartItem.quantity;
       await this.productRepository.save(cartItem.product);
     }
-    cart.priceAfterPromoCode = 0;
-    await this.cartRepository.save(cart);
+    
+    console.log(cart.promoCodeId);
+    if(cart.promoCodeId){
+      const promo_usage=await this.user_promo_usage.findOne({where:{id:cart.promoCodeId}});
+      promo_usage.usage_count+=1;
+      await this.user_promo_usage.save(promo_usage)
+    }
+    
+    
+    
     await this.orderRepository.save(order);
     await this.orderItemRepository.save(orderItems);
     await this.cartItemRepository.softRemove(cart.items);
+    cart.priceAfterPromoCode=0;
+    cart.delivery_charge=40;
+    cart.promoCodeId=0;
+    cart.totalDiscount=0;
+    cart.promoCode="";
+    cart.subTotal=0;
+    cart.totalPriceAfterDiscount=0;
+    cart.priceAfterPromoCode = 0;
+    await this.cartRepository.save(cart);
+  
     this.sendOrderConfimationMail(userId);
 
     return {

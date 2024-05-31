@@ -25,20 +25,23 @@ export class Order {
   // @Column()
   // promoCode: string;
 
-  // @Column()
-  // promoCodeId: number;
+  @Column({nullable:true})
+  promoCodeId: number;
 
   @Column()
   priceAfterPromoCode: number;
 
   @Column({ default: 0, nullable: true })
-  totalPrice: number;
+  subTotal: number;
 
   @Column({ default: 0, nullable: true })
   totalDiscount: number;
 
   @Column({ default: 0, nullable: true })
   totalPriceAfterDiscount: number;
+
+  @Column({ default: 0, nullable: true })
+  totalPrice: number;
 
   @Column({ nullable: true })
   contact_number: string;

@@ -18,13 +18,16 @@ export class Cart {
   // delivery_type:[]
 
   @Column({ default: 0, nullable: true })
-  totalPrice: number;
+  subTotal: number;
 
   @Column({ default: 0, nullable: true })
   totalDiscount: number;
 
   @Column({ default: 0, nullable: true })
   totalPriceAfterDiscount: number;
+
+  @Column({default:40})
+  delivery_charge:number;
 
   @Column({ nullable: true })
   promoCodeId: number;
@@ -34,6 +37,12 @@ export class Cart {
 
   @Column({ default: 0 })
   priceAfterPromoCode: number;
+
+  @Column({default:0})
+  totalPrice:number;
+
+  @Column({default:false})
+  promoApplied:boolean;
 
   @OneToOne(() => User, (user) => user.cart)
   @JoinColumn()

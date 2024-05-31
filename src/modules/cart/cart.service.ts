@@ -14,8 +14,6 @@ import { User } from "../user/entities/user.entity";
 import { Product } from "../product/entities/product.entity";
 import { AddPromoDto } from "./dto/add-promo.dto";
 import { Promo } from "../promos/entities/promo.entity";
-import { ApiOperation, ApiResponse } from "@nestjs/swagger";
-import { STATUS_CODES } from "http";
 
 @Injectable()
 export class CartService {
@@ -51,7 +49,6 @@ export class CartService {
     if (!cart) {
       cart = new Cart();
       cart.user = user;
-      // console.log("New cart created for user:", cart.user);
       await this.cartRepository.save(cart);
     }
 
@@ -83,114 +80,147 @@ export class CartService {
 
   async findAll(userId: number): Promise<{
     cartItems: CartItem[];
-    totalPrice: number;
+    subTotal: number;
     totalDiscount: number;
     totalPriceAfterDiscount: number;
     priceAfterCoupon: number;
-  }> {
+    deliveryCharge:number;
+    totalPrice:number
+  }|any> {
     const cart = await this.cartRepository.findOne({
       where: { user: { id: userId } },
       relations: ["items", "items.product"],
     });
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+      relations: ["user_promo_usage","user_promo_usage.promo"],
+    });
+    // console.log(cart.priceAfterPromoCode)
     if (!cart) {
       throw new NotFoundException("Cart not found");
     }
     
-    let totalPrice: number = 0;
+    let subTotal: number = 0;
     let totalPriceAfterDiscount: number = 0;
     for (const cartItem of cart.items) {
-      totalPrice += cartItem.product.price * cartItem.quantity;
+      subTotal += cartItem.product.price * cartItem.quantity;
       totalPriceAfterDiscount +=
         cartItem.product.discountPrice * cartItem.quantity;
     }
-    cart.totalPrice = totalPrice;
-    cart.totalDiscount = totalPrice - totalPriceAfterDiscount;
+    cart.subTotal = subTotal;
+    cart.totalDiscount = subTotal - totalPriceAfterDiscount;
     cart.totalPriceAfterDiscount = totalPriceAfterDiscount;
     if(cart.items.length==0){
       cart.priceAfterPromoCode=0;
     }
+    if(cart.priceAfterPromoCode==0){
+      cart.priceAfterPromoCode=cart.totalPriceAfterDiscount;
+    }
+    const promo = user.user_promo_usage.find((promo) => promo.id === cart.promoCodeId);
+    if(cart.promoApplied){
+      if(promo.promo.min_price>cart.subTotal){
+        return{
+          statusCode:HttpStatus.BAD_REQUEST,
+          error:null,
+          message:`Minimum price should be ${promo.promo.min_price}`
+        }
+      }
+      if(promo.promo.discount_on=="deliveryCharge"){
+        cart.delivery_charge=0;
+        cart.priceAfterPromoCode=cart.totalPriceAfterDiscount;
+      }
+      else{
+        cart.delivery_charge=40;
+        cart.priceAfterPromoCode =Math.round(
+          cart.subTotal - (cart.subTotal * promo.promo.discount) / 100);
+      }
+    }
+    else{
+      cart.priceAfterPromoCode=cart.totalPriceAfterDiscount;
+    }
+    
+    await this.cartRepository.save(cart);
+    cart.totalPrice=Math.min(cart.priceAfterPromoCode,cart.totalPriceAfterDiscount)+cart.delivery_charge;
     this.cartRepository.save(cart);
+    
     return {
       cartItems: cart.items,
-      totalPrice: cart.totalPrice,
+      subTotal: cart.subTotal,
       totalDiscount: cart.totalDiscount,
+      deliveryCharge:cart.delivery_charge,
       totalPriceAfterDiscount: cart.totalPriceAfterDiscount,
       priceAfterCoupon: cart.priceAfterPromoCode,
+      totalPrice:cart.totalPrice
     };
   }
 
   async findAllCart() {
     return this.cartRepository.find();
   }
+
+
   async addpromoCart(addPromoDto: AddPromoDto, userId: number): Promise<any> {
-  //   const user = await this.userRepository.findOne({
-  //     where: { id: userId },
-  //     relations: ["promos"],
-  //   });
-  //   const cart = await this.cartRepository.findOne({
-  //     where: { user: { id: userId } },
-  //     relations: ["items", "items.product"],
-  //   });
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+      relations: ["user_promo_usage","user_promo_usage.promo"],
+    });
+    console.log(user.user_promo_usage);
+    const cart = await this.cartRepository.findOne({
+      where: { user: { id: userId } },
+      relations: ["items", "items.product"],
+    });
+    if(cart.items.length==0){
+      return{
+        statusCode:HttpStatus.BAD_REQUEST,
+        error:null,
+        message:"Add some products to the cart"
+      }
+    }
+    if (!user) {
+      throw new NotFoundException(`User with id ${userId} not found`);
+    }
+    if(addPromoDto.id==""){
+      cart.priceAfterPromoCode=cart.totalPriceAfterDiscount;
+      cart.promoApplied=false;
+      this.cartRepository.save(cart);
+      return{
+        statusCode:HttpStatus.OK,
+        error:null,
+        message:"Promo code didnt applied"
+      }
+    }
+    const promo = user.user_promo_usage.find((promo) => promo.id === +addPromoDto.id);
+    console.log("promo",promo);
 
-  //   if (!user) {
-  //     throw new NotFoundException(`User with id ${userId} not found`);
-  //   }
-  //   // console.log("heree",addPromoDto.name);
-  //   if(addPromoDto.name==""){
-  //     console.log("here ")
-  //     cart.priceAfterPromoCode=cart.totalPriceAfterDiscount;
-  //     this.cartRepository.save(cart);
-  //     return{
-  //       statusCode:HttpStatus.OK,
-  //       error:null,
-  //       message:"Promo code didnt applied"
-  //     }
-  //   }
-  //   // console.log(userId)
-  //   // console.log(addPromoDto.name);
-  //   const promo = user.promos.find((promo) => promo.name === addPromoDto.name);
-  //   // console.log("promo",promo);
+    if (!promo ) {
+      return {
+        statusCode: HttpStatus.NOT_FOUND,
+        error: null,
+        message: "Promo name not found",
+      };
+    }
+    if(promo.promo.validTill<new Date()){
+      return{
+        statusCode:HttpStatus.BAD_REQUEST,
+        error:null,
+        message:"Promo is not valid"
+      }
+    }
 
-  //   if (!promo ) {
-  //     return {
-  //       statusCode: HttpStatus.NOT_FOUND,
-  //       error: null,
-  //       message: "Promo name not found",
-  //     };
-  //   }
-  //   if(promo.validTill<new Date()){
-  //     return{
-  //       statusCode:HttpStatus.BAD_REQUEST,
-  //       error:null,
-  //       message:"Promo is not valid"
-  //     }
-  //   }
-
-  //   // if (promo.isAvailed) {
-  //   //   return {
-  //   //     statusCode: HttpStatus.BAD_REQUEST,
-  //   //     error: "Promo already used",
-  //   //     message: `Promo with name ${addPromoDto.name} has already been used by the user`,
-  //   //   };
-  //   // }
-
-  //   // promo.isAvailed = true;
-  //   await this.promoRepository.save(promo);
-    
-    
-  //   cart.promoCode = addPromoDto.name;
-  //   cart.promoCodeId = promo.id;
-  //   cart.priceAfterPromoCode =Math.round(
-  //     cart.totalPrice - (cart.totalPrice * promo.discount) / 100);
-  //   if (!cart) {
-  //     throw new NotFoundException(`Cart not found for user with id ${userId}`);
-  //   }
-  //   await this.cartRepository.save(cart);
-
+    if (promo.usage_count>=promo.promo.usage_limit) {
+      return {
+        statusCode: HttpStatus.BAD_REQUEST,
+        error: "Promo already used maximum times" ,
+        message: `Promo with name ${addPromoDto.id} has already used maximum times by the user`,
+      };
+    }
+    cart.promoCodeId = +addPromoDto.id;
+    cart.promoApplied=true;
+    await this.cartRepository.save(cart);
     return {
       statusCode: HttpStatus.OK,
       error: null,
-      message: `Promo ${addPromoDto.name} applied successfully`,
+      message: `Promo ${addPromoDto.id} applied successfully`,
     };
   }
 
@@ -210,20 +240,44 @@ export class CartService {
   }
 
   async updateCart(
-    cartItemId: number,
-    updateCartDto: UpdateCartDto
-  ): Promise<CartItem> {
-    const { quantity } = updateCartDto;
-    const cartItem = await this.cartItemRepository.findOne({
-      where: { id: cartItemId },
+    updateCartDto: UpdateCartDto, user_id: number
+  ): Promise<object> {
+    const { cartItemId, quantity } = updateCartDto;
+  
+    const cart = await this.cartRepository.findOne({
+      where: { user: { id: user_id } },
+      relations: ["items", "items.product"]
     });
-
+    
+    if (!cart) {
+      throw new NotFoundException("Cart not found");
+    }
+  
+    const cartItem = cart.items.find(item => item.id === cartItemId);
     if (!cartItem) {
       throw new NotFoundException("Cart item not found");
     }
-    cartItem.quantity = quantity;
-    return await this.cartItemRepository.save(cartItem);
+  
+    if (quantity <= 0) {
+      await this.cartItemRepository.remove(cartItem);
+    } else {
+      const product = await this.productRepository.findOne({
+        where: { id: cartItem.product.id }
+      });
+      if (product && quantity > product.stockQuantity) {
+        throw new BadRequestException("Not enough stock");
+      }
+      cartItem.quantity = quantity;
+      await this.cartItemRepository.save(cartItem);
+    }
+  
+    return {
+      statusCode: HttpStatus.OK,
+      error: null,
+      message: "Cart updated successfully",
+    };
   }
+  
 
   async deleteProductByCartId(cartId: number) {
     return this.cartItemRepository.delete(cartId);
