@@ -91,6 +91,13 @@ export class CartService {
       where: { user: { id: userId } },
       relations: ["items", "items.product"],
     });
+    if(cart.items.length==0){
+      return{
+        statusCode:HttpStatus.OK,
+        error:null,
+        message:"No items in the cart"
+      }
+    }
     const user = await this.userRepository.findOne({
       where: { id: userId },
       relations: ["user_promo_usage","user_promo_usage.promo"],
@@ -118,30 +125,27 @@ export class CartService {
     }
     const promo = user.user_promo_usage.find((promo) => promo.id === cart.promoCodeId);
     if(cart.promoApplied){
-      if(promo.promo.min_price>cart.subTotal){
-        return{
-          statusCode:HttpStatus.BAD_REQUEST,
-          error:null,
-          message:`Minimum price should be ${promo.promo.min_price}`
-        }
+      if(promo?.promo.min_price>cart.subTotal){
+        cart.priceAfterPromoCode=cart.totalPriceAfterDiscount;
+        cart.delivery_charge=40;
       }
-      if(promo.promo.discount_on=="deliveryCharge"){
+      else if(promo?.promo.discount_on=="deliveryCharge"){
         cart.delivery_charge=0;
         cart.priceAfterPromoCode=cart.totalPriceAfterDiscount;
       }
       else{
         cart.delivery_charge=40;
         cart.priceAfterPromoCode =Math.round(
-          cart.subTotal - (cart.subTotal * promo.promo.discount) / 100);
+          cart.subTotal - (cart.subTotal * promo?.promo.discount) / 100);
       }
     }
     else{
       cart.priceAfterPromoCode=cart.totalPriceAfterDiscount;
     }
     
-    await this.cartRepository.save(cart);
+    // await this.cartRepository.save(cart);
     cart.totalPrice=Math.min(cart.priceAfterPromoCode,cart.totalPriceAfterDiscount)+cart.delivery_charge;
-    this.cartRepository.save(cart);
+    await this.cartRepository.save(cart);
     
     return {
       cartItems: cart.items,
@@ -181,6 +185,7 @@ export class CartService {
     }
     if(addPromoDto.id==""){
       cart.priceAfterPromoCode=cart.totalPriceAfterDiscount;
+      cart.delivery_charge=40;
       cart.promoApplied=false;
       this.cartRepository.save(cart);
       return{
@@ -199,6 +204,13 @@ export class CartService {
         message: "Promo name not found",
       };
     }
+    if(promo?.promo.min_price>cart.subTotal){
+      return{
+        statusCode:HttpStatus.BAD_REQUEST,
+        error:null,
+        message:`For applying promo code minimum price should be ${promo.promo.min_price}`
+      }
+    }
     if(promo.promo.validTill<new Date()){
       return{
         statusCode:HttpStatus.BAD_REQUEST,
@@ -208,6 +220,7 @@ export class CartService {
     }
 
     if (promo.usage_count>=promo.promo.usage_limit) {
+      // cart.delivery_charge=40;
       return {
         statusCode: HttpStatus.BAD_REQUEST,
         error: "Promo already used maximum times" ,
@@ -256,6 +269,13 @@ export class CartService {
     const cartItem = cart.items.find(item => item.id === cartItemId);
     if (!cartItem) {
       throw new NotFoundException("Cart item not found");
+    }
+    if(updateCartDto.quantity<0){
+      return{
+        statusCode:HttpStatus.BAD_REQUEST,
+        error:null,
+        message:"Quantity must be positive"
+      }
     }
   
     if (quantity <= 0) {
