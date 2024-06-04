@@ -17,6 +17,7 @@ import { JwtAuthGuard } from "../../guards/user.guard";
 import { JwtAdminAuthGuard } from "src/guards/admin.guard";
 import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 import { AddPromoDto } from "./dto/add-promo.dto";
+import { UpdateCartDto } from "./dto/update-cart.dto";
 
 @ApiTags("cart")
 @ApiBearerAuth("access-token")
@@ -47,6 +48,14 @@ export class CartController {
   findOne(@Param("userId", ParseIntPipe) userId: number, @Req() req: any) {
     return this.cartService.findCartByUserId(userId);
   }
+
+  @Patch()
+  @UseGuards(JwtAuthGuard)
+  update(@Body() updateCartDto:UpdateCartDto,@Req() req:any){
+    return this.cartService.updateCart(updateCartDto,req.user.id)
+  }
+
+
   @Delete(":cartId")
   @UseGuards(JwtAuthGuard)
   remove(@Param("cartId", ParseIntPipe) cartId: number) {

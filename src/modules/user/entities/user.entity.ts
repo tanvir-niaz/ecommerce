@@ -4,7 +4,7 @@ import { IsEmail } from "class-validator";
 import { Cart } from "src/modules/cart/entities/cart.entity";
 import { Order } from "src/modules/order/entities/order.entity";
 import { Promo } from "src/modules/promos/entities/promo.entity";
-import { Review } from "src/modules/reviews/entities/review.entity";
+import { User_promo_usage } from "src/modules/promos/entities/user_promo_usage";
 import { Column, Entity, JoinColumn, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 
 
@@ -49,8 +49,8 @@ export class User {
     orders:Order[]
 
     @Exclude()
-    @OneToMany(()=>Promo,promo=>promo.user)
-    promos:Promo[];
+    @OneToMany(()=>User_promo_usage,User_promo_usage=>User_promo_usage.user)
+    user_promo_usage:User_promo_usage[]
 
     @Exclude()
     @OneToMany(()=>Review,(reviews)=>reviews.user,{ cascade: true, onDelete: 'CASCADE' })

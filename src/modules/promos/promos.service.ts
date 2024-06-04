@@ -8,18 +8,20 @@ import { Repository } from 'typeorm';
 import { AddPromoDto } from './dto/add-promo.dto';
 import { User } from '../user/entities/user.entity';
 import { error } from 'console';
+import { User_promo_usage } from './entities/user_promo_usage';
 
 @Injectable()
 export class PromosService {
 
   constructor(
     @InjectRepository(Promo) private readonly promoRepository: Repository<Promo>, 
-    @InjectRepository(User) private readonly userRepository: Repository<User>
+    @InjectRepository(User) private readonly userRepository: Repository<User>,
+    @InjectRepository(User_promo_usage) private readonly userPromoRepository:Repository<User_promo_usage>
   ) {}
 
   async create(createPromoDto: CreatePromoDto): Promise<object> {
-    // console.log(createPromoDto);
-    let promo:Promo=await this.promoRepository.findOne({where:{name:createPromoDto.name}});
+    console.log(createPromoDto);
+    let promo=await this.promoRepository.findOne({where:{code:createPromoDto.code}});
     if(promo){
       return{
         statusCode:HttpStatus.BAD_REQUEST,
@@ -44,47 +46,39 @@ export class PromosService {
   async addPromoByUser(addPromoDto: AddPromoDto, userId: number):Promise<object> {
     const user :User= await this.userRepository.findOne({
       where: { id: userId },
-      relations: ['promos']
+      relations: ['user_promo_usage', 'user_promo_usage.promo'], 
     });
-
+    
     if (!user) {
       throw new NotFoundException(`User with id ${userId} not found`);
     }
-    const existingPromo:Promo = user.promos.find(promo => promo.name === addPromoDto.name);
+    
+    const existingPromo = user.user_promo_usage.find(usage => usage.promo.id === addPromoDto.id);
 
     if (existingPromo) {
       return {
         statusCode: HttpStatus.BAD_REQUEST,
         error: 'Promo already added',
-        message: `User already has a promo with the name ${addPromoDto.name}`
+        message: `User already has a promo with the name ${addPromoDto.id}`
       };
     }
-    const promoFind:Promo = await this.promoRepository.findOne({ where: { name: addPromoDto.name } });
+    const promoFind = await this.promoRepository.findOne({ where: {id:addPromoDto.id} });
     if (!promoFind) {
-      return{
-        statusCode:HttpStatus.NOT_FOUND,
-        error:null,
-        message:"Promo not found"
-      }
+      throw new NotFoundException(`Promo with name ${addPromoDto.id} not found`);
     }
-    
-    const promo = new Promo();
-    promo.name = addPromoDto.name;
-    promo.user = user;
-    promo.discount = promoFind.discount;
-    promo.validTill= promoFind.validTill;
     const currentDate = new Date();
-    
-    if (currentDate > new Date(promo.validTill)) {
+    if (currentDate > promoFind.validTill) {
       return {
         statusCode: HttpStatus.BAD_REQUEST,
         error: 'Promo expired',
-        message: `Promo with name ${addPromoDto.name} has expired`,
+        message: `Promo with name ${addPromoDto.id} has expired`
       };
     }
-    if (promo.isAvailed === undefined) {
-      await this.promoRepository.save(promo);
-    }
+
+    const promoUsage=new User_promo_usage();
+    promoUsage.promo=promoFind;
+    promoUsage.user=user;
+    await this.userPromoRepository.save(promoUsage);
     return {
       statusCode: HttpStatus.OK,
       error: null,

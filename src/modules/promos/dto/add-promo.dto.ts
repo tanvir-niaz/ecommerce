@@ -1,8 +1,9 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsNotEmpty } from "class-validator";
+import { IsInt, IsNotEmpty } from "class-validator";
 
 export class AddPromoDto {
-  @ApiProperty({ example: "SUMMER24" })
+  @ApiProperty({ example: 33 })
   @IsNotEmpty()
-  name: string;
+  @IsInt()
+  id: number;
 }
