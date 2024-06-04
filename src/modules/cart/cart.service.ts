@@ -31,18 +31,18 @@ export class CartService {
   async addToCart(userId: number, addToCartDto: AddToCartDto): Promise<object> {
     const { productId, quantity } = addToCartDto;
 
-    const product:Product = await this.productRepository.findOne({
+    const product = await this.productRepository.findOne({
       where: { id: productId },
     });
     if (!product) {
       throw new NotFoundException("Product not found");
     }
-    const user : User = await this.userRepository.findOne({ where: { id: userId } });
+    const user = await this.userRepository.findOne({ where: { id: userId } });
     if (!user) {
       throw new NotFoundException("User not found");
     }
 
-    let cart:Cart = await this.cartRepository.findOne({
+    let cart = await this.cartRepository.findOne({
       where: { user: { id: userId } },
       relations: ["user", "items", "items.product"],
     });
@@ -52,7 +52,7 @@ export class CartService {
       await this.cartRepository.save(cart);
     }
 
-    let cartItem:CartItem = await this.cartItemRepository.findOne({
+    let cartItem = await this.cartItemRepository.findOne({
       where: { cart: { id: cart.id }, product: { id: product.id } },
     });
 
@@ -119,18 +119,7 @@ export class CartService {
     cart.totalDiscount = subTotal - totalPriceAfterDiscount;
     cart.totalPriceAfterDiscount = totalPriceAfterDiscount;
     if(cart.items.length==0){
-      cart.priceAfterPromoCode=cart.totalPriceAfterDiscount;
-    }
-    
-    const promo:Promo=await this.promoRepository.findOne({where:{name:cart.promoCode}});
-    if(!promo){
-      console.log("promo not found")
-      cart.promoCode=null;
-      cart.promoCodeId=null;
-      cart.priceAfterPromoCode=cart.totalPriceAfterDiscount;
-    }
-    if(cart.priceAfterPromoCode==0){
-      cart.priceAfterPromoCode=cart.totalPriceAfterDiscount;
+      cart.priceAfterPromoCode=0;
     }
     if(cart.priceAfterPromoCode==0){
       cart.priceAfterPromoCode=cart.totalPriceAfterDiscount;
@@ -177,7 +166,7 @@ export class CartService {
 
 
   async addpromoCart(addPromoDto: AddPromoDto, userId: number): Promise<any> {
-    const user: User = await this.userRepository.findOne({
+    const user = await this.userRepository.findOne({
       where: { id: userId },
       relations: ["user_promo_usage","user_promo_usage.promo"],
     });
@@ -205,7 +194,6 @@ export class CartService {
         statusCode:HttpStatus.OK,
         error:null,
         message:"Promo code didnt applied"
-
       }
     }
     const promo = user.user_promo_usage.find((promo) => promo.id === +addPromoDto.id);
@@ -252,7 +240,7 @@ export class CartService {
   }
 
   async findCartByUserId(user_id: number): Promise<CartItem | object> {
-    const cart :Cart= await this.cartRepository.findOne({
+    const cart = await this.cartRepository.findOne({
       where: { user: { id: user_id } },
       relations: ["items", "items.product"],
     });
@@ -315,5 +303,6 @@ export class CartService {
 
   async deleteProductByCartId(cartId: number) {
     return this.cartItemRepository.delete(cartId);
+    
   }
 }
