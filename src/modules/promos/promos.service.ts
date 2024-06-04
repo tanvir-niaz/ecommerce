@@ -27,6 +27,7 @@ export class PromosService {
         message:"You have already a promo with that name"
       }
     }
+    
     promo=this.promoRepository.create({
       ...createPromoDto,
       validTill:new Date(createPromoDto.validTill),
