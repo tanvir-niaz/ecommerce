@@ -103,7 +103,7 @@ export class CartService {
       relations: ["user_promo_usage","user_promo_usage.promo"],
     });
     // console.log(cart.priceAfterPromoCode)
-    
+
     if (!cart) {
       throw new NotFoundException("Cart not found");
     }
@@ -145,6 +145,7 @@ export class CartService {
     }
     
     // await this.cartRepository.save(cart);
+    
     cart.totalPrice=Math.min(cart.priceAfterPromoCode,cart.totalPriceAfterDiscount)+cart.delivery_charge;
     await this.cartRepository.save(cart);
     
