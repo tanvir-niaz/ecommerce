@@ -14,9 +14,9 @@ import { UserModule } from 'src/modules/user/user.module';
 @Module({
   imports:[forwardRef(()=>UserModule),PassportModule,TypeOrmModule.forFeature([User]),
   TypeOrmModule.forFeature([User]),
-    ConfigModule, // Import ConfigModule to access ConfigService
+    ConfigModule, 
     JwtModule.registerAsync({
-      imports: [ConfigModule], // Import ConfigModule here as well
+      imports: [ConfigModule], 
       useFactory: async (configService: ConfigService) => ({
         secret: configService.get<string>('secret_key'),
         signOptions: { expiresIn: '4h' }

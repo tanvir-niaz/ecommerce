@@ -15,6 +15,7 @@ import { User } from "../user/entities/user.entity";
 import { CartItem } from "../cart/entities/cart-item.entity";
 import { MailerService } from "@nestjs-modules/mailer";
 import { Promo } from "../promos/entities/promo.entity";
+import { User_promo_usage } from "../promos/entities/user_promo_usage";
 
 @Injectable()
 export class OrderService {
@@ -32,6 +33,9 @@ export class OrderService {
     private readonly cartItemRepository: Repository<Cart>,
     @InjectRepository(Promo)
     private readonly promoRepository: Repository<Promo>,
+    @InjectRepository(User_promo_usage)
+    private readonly user_promo_usage: Repository<User_promo_usage
+    >,
   ) {}
 
 
@@ -43,65 +47,97 @@ export class OrderService {
       where: { user: { id: userId } },
       relations: ["items", "items.product", "user"],
     });
-
-    if (!cart) {
-      throw new NotFoundException("Cart not found for the user");
-    }
-    if (cart.items.length == 0) {
+  
+    if (!cart || cart.items.length === 0) {
       return {
         statusCode: HttpStatus.NOT_FOUND,
         error: null,
-        message: "Cart not found",
+        message: "Cart not found or is empty",
       };
     }
-
-    const order = new Order();
-    order.user = cart.user;
-    order.contact_number = createOrderDto.contact_number;
-    order.cartId = cart.id;
-    order.totalPrice = cart.totalPrice;
-    order.totalDiscount = cart.totalDiscount;
-    order.totalPriceAfterDiscount = cart.totalPriceAfterDiscount;
-    order.priceAfterPromoCode = cart.priceAfterPromoCode;
-    order.promoCode = cart.promoCode;
-    order.promoCodeId = cart.promoCodeId;
-    order.shipping_address = createOrderDto.shipping_address;
-    
-    const promo :Promo= await this.promoRepository.findOne({
-      where: { id: cart.promoCodeId },
-    });
-
-    if (promo) {
-      (await promo).isAvailed = true;
-      await this.promoRepository.save(promo);
-    }
-    const orderItems: OrderItem[] = cart.items.map((cartItem) => {
-      const orderItem = new OrderItem();
-      orderItem.order = order;
-      orderItem.quantity = cartItem.quantity;
-
-      orderItem.productDetails = cartItem.product;
-      return orderItem;
-    });
-    for (const cartItem of cart.items) {
-      cartItem.product.stockQuantity -= cartItem.quantity;
-      await this.productRepository.save(cartItem.product);
-    }
-    cart.priceAfterPromoCode = 0;
-    cart.promoCode=null;
-    cart.promoCodeId=null;
-    await this.cartRepository.save(cart);
+  
+    const order = this.createOrderEntity(createOrderDto, cart);
+    const orderItems = this.createOrderItems(cart.items, order);
+  
+    await this.updateProductStock(cart.items);
+    await this.updatePromoUsage(cart.promoCodeId);
+  
     await this.orderRepository.save(order);
     await this.orderItemRepository.save(orderItems);
-    await this.cartItemRepository.softRemove(cart.items);
+  
+    await this.clearCart(cart);
+  
     this.sendOrderConfimationMail(userId);
-
+  
     return {
       statusCode: HttpStatus.CREATED,
       error: null,
       message: "Your order has been successfully placed",
     };
   }
+  
+  private createOrderEntity(createOrderDto: CreateOrderDto, cart: Cart): Order {
+    const order = new Order();
+    order.user = cart.user;
+    order.contact_number = createOrderDto.contact_number;
+    order.cartId = cart.id;
+    order.subTotal = cart.subTotal;
+    order.totalDiscount = cart.totalDiscount;
+    order.totalPriceAfterDiscount = cart.totalPriceAfterDiscount;
+    order.priceAfterPromoCode = cart.priceAfterPromoCode;
+    order.promoCodeId = cart.promoCodeId ? +cart.promoCodeId : null;
+    order.shipping_address = createOrderDto.shipping_address;
+    order.totalPrice = cart.totalPrice;
+    return order;
+  }
+  
+  private createOrderItems(cartItems: CartItem[], order: Order): OrderItem[] {
+    return cartItems.map(cartItem => {
+      const orderItem = new OrderItem();
+      orderItem.order = order;
+      orderItem.quantity = cartItem.quantity;
+      orderItem.productDetails = cartItem.product;
+      return orderItem;
+    });
+  }
+  
+  private async updateProductStock(cartItems: CartItem[]): Promise<void> {
+    for (const cartItem of cartItems) {
+      cartItem.product.stockQuantity -= cartItem.quantity;
+      await this.productRepository.save(cartItem.product);
+    }
+  }
+  
+  private async updatePromoUsage(promoCodeId: number): Promise<void> {
+    if (promoCodeId) {
+      const promoUsage = await this.user_promo_usage.findOne({
+        where: { id: promoCodeId },
+      });
+      if (promoUsage) {
+        promoUsage.usage_count += 1;
+        await this.user_promo_usage.save(promoUsage);
+      }
+    }
+  }
+  
+  private async clearCart(cart: Cart): Promise<void> {
+    await this.cartItemRepository.softRemove(cart.items);
+  
+    cart.priceAfterPromoCode = 0;
+    cart.delivery_charge = 40;
+    cart.promoCodeId = 0;
+    cart.totalDiscount = 0;
+    cart.promoCode = "";
+    cart.subTotal = 0;
+    cart.totalPriceAfterDiscount = 0;
+    cart.priceAfterPromoCode = 0;
+    cart.promoApplied=false;
+  
+    await this.cartRepository.save(cart);
+  }
+  
+  
+  
 
   async getPreviousOrders(userId: number): Promise<Order[]> {
     const orders = await this.orderRepository.find({

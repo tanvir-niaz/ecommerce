@@ -30,7 +30,7 @@ export class ProductService {
     const queryBuilder = this.productRepository.createQueryBuilder('product');
 
       if (productQueryDto.category) {
-        queryBuilder.andWhere('product.category = :category', { category: productQueryDto.category },);
+        queryBuilder.andWhere('product.category ILIKE  :category', { category: `%${productQueryDto.category }%`},);
       }
       if (productQueryDto.discount) {
         queryBuilder.andWhere('product.discount = :discount', { discount: productQueryDto.discount },);

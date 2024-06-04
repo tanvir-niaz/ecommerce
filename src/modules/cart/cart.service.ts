@@ -15,7 +15,6 @@ import { Product } from "../product/entities/product.entity";
 import { AddPromoDto } from "./dto/add-promo.dto";
 import { Promo } from "../promos/entities/promo.entity";
 
-
 @Injectable()
 export class CartService {
   constructor(
@@ -32,29 +31,28 @@ export class CartService {
   async addToCart(userId: number, addToCartDto: AddToCartDto): Promise<object> {
     const { productId, quantity } = addToCartDto;
 
-    const product:Product = await this.productRepository.findOne({
+    const product = await this.productRepository.findOne({
       where: { id: productId },
     });
     if (!product) {
       throw new NotFoundException("Product not found");
     }
-    const user : User = await this.userRepository.findOne({ where: { id: userId } });
+    const user = await this.userRepository.findOne({ where: { id: userId } });
     if (!user) {
       throw new NotFoundException("User not found");
     }
 
-    let cart:Cart = await this.cartRepository.findOne({
+    let cart = await this.cartRepository.findOne({
       where: { user: { id: userId } },
       relations: ["user", "items", "items.product"],
     });
     if (!cart) {
       cart = new Cart();
       cart.user = user;
-      // console.log("New cart created for user:", cart.user);
       await this.cartRepository.save(cart);
     }
 
-    let cartItem:CartItem = await this.cartItemRepository.findOne({
+    let cartItem = await this.cartItemRepository.findOne({
       where: { cart: { id: cart.id }, product: { id: product.id } },
     });
 
@@ -82,83 +80,125 @@ export class CartService {
 
   async findAll(userId: number): Promise<{
     cartItems: CartItem[];
-    totalPrice: number;
+    subTotal: number;
     totalDiscount: number;
     totalPriceAfterDiscount: number;
     priceAfterCoupon: number;
-  }> {
+    deliveryCharge:number;
+    totalPrice:number
+  }|any> {
     const cart = await this.cartRepository.findOne({
       where: { user: { id: userId } },
       relations: ["items", "items.product"],
     });
+    if(cart.items.length==0){
+      return{
+        statusCode:HttpStatus.OK,
+        error:null,
+        message:"No items in the cart"
+      }
+    }
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+      relations: ["user_promo_usage","user_promo_usage.promo"],
+    });
+    // console.log(cart.priceAfterPromoCode)
+
     if (!cart) {
       throw new NotFoundException("Cart not found");
     }
     
-    let totalPrice: number = 0;
+    let subTotal: number = 0;
     let totalPriceAfterDiscount: number = 0;
     for (const cartItem of cart.items) {
-      totalPrice += cartItem.product.price * cartItem.quantity;
+      subTotal += cartItem.product.price * cartItem.quantity;
       totalPriceAfterDiscount +=
         cartItem.product.discountPrice * cartItem.quantity;
     }
-    cart.totalPrice = totalPrice;
-    cart.totalDiscount = totalPrice - totalPriceAfterDiscount;
+    cart.subTotal = subTotal;
+    cart.totalDiscount = subTotal - totalPriceAfterDiscount;
     cart.totalPriceAfterDiscount = totalPriceAfterDiscount;
     if(cart.items.length==0){
-      cart.priceAfterPromoCode=cart.totalPriceAfterDiscount;
-    }
-    
-    const promo:Promo=await this.promoRepository.findOne({where:{name:cart.promoCode}});
-    if(!promo){
-      console.log("promo not found")
-      cart.promoCode=null;
-      cart.promoCodeId=null;
-      cart.priceAfterPromoCode=cart.totalPriceAfterDiscount;
+      cart.priceAfterPromoCode=0;
     }
     if(cart.priceAfterPromoCode==0){
       cart.priceAfterPromoCode=cart.totalPriceAfterDiscount;
     }
-    console.log(cart);
-    this.cartRepository.save(cart);
+    const promo = user.user_promo_usage.find((promo) => promo.id === cart.promoCodeId);
+    if(cart.promoApplied){
+      if(promo?.promo.min_price>cart.subTotal){
+        cart.priceAfterPromoCode=cart.totalPriceAfterDiscount;
+        cart.delivery_charge=40;
+      }
+      else if(promo?.promo.discount_on=="deliveryCharge"){
+        cart.delivery_charge=0;
+        cart.priceAfterPromoCode=cart.totalPriceAfterDiscount;
+      }
+      else{
+        cart.delivery_charge=40;
+        cart.priceAfterPromoCode =Math.round(
+          cart.subTotal - (cart.subTotal * promo?.promo.discount) / 100);
+      }
+    }
+    else{
+      cart.priceAfterPromoCode=cart.totalPriceAfterDiscount;
+    }
+    
+    // await this.cartRepository.save(cart);
+    
+    cart.totalPrice=Math.min(cart.priceAfterPromoCode,cart.totalPriceAfterDiscount)+cart.delivery_charge;
+    await this.cartRepository.save(cart);
+    
     return {
       cartItems: cart.items,
-      totalPrice: cart.totalPrice,
+      subTotal: cart.subTotal,
       totalDiscount: cart.totalDiscount,
+      deliveryCharge:cart.delivery_charge,
       totalPriceAfterDiscount: cart.totalPriceAfterDiscount,
       priceAfterCoupon: cart.priceAfterPromoCode,
+      totalPrice:cart.totalPrice
     };
   }
 
   async findAllCart() {
     return this.cartRepository.find();
   }
+
+
   async addpromoCart(addPromoDto: AddPromoDto, userId: number): Promise<any> {
-    const user: User = await this.userRepository.findOne({
+    const user = await this.userRepository.findOne({
       where: { id: userId },
-      relations: ["promos"],
+      relations: ["user_promo_usage","user_promo_usage.promo"],
     });
-    const cart :Cart= await this.cartRepository.findOne({
+    console.log(user.user_promo_usage);
+    const cart = await this.cartRepository.findOne({
       where: { user: { id: userId } },
       relations: ["items", "items.product"],
     });
-
+    if(cart.items.length==0){
+      return{
+        statusCode:HttpStatus.BAD_REQUEST,
+        error:null,
+        message:"Add some products to the cart"
+      }
+    }
     if (!user) {
       throw new NotFoundException(`User with id ${userId} not found`);
     }
-    if(addPromoDto.name==""){
+    if(addPromoDto.id==""){
       cart.priceAfterPromoCode=cart.totalPriceAfterDiscount;
-      cart.promoCode=null;
-      cart.promoCodeId=null;
+      cart.delivery_charge=40;
+      cart.promoApplied=false;
       this.cartRepository.save(cart);
       return{
         statusCode:HttpStatus.OK,
         error:null,
         message:"Promo code didnt applied"
-
       }
     }
-    const promo:Promo = user.promos.find((promo) => promo.name === addPromoDto.name);
+    const promo = user.user_promo_usage.find((promo) => promo.id === +addPromoDto.id);
+    console.log("promo",promo);
+
     if (!promo ) {
       return {
         statusCode: HttpStatus.NOT_FOUND,
@@ -166,7 +206,14 @@ export class CartService {
         message: "Promo name not found",
       };
     }
-    if(new Date(promo.validTill)<new Date()){
+    if(promo?.promo.min_price>cart.subTotal){
+      return{
+        statusCode:HttpStatus.BAD_REQUEST,
+        error:null,
+        message:`For applying promo code minimum price should be ${promo.promo.min_price}`
+      }
+    }
+    if(promo.promo.validTill<new Date()){
       return{
         statusCode:HttpStatus.BAD_REQUEST,
         error:null,
@@ -174,36 +221,26 @@ export class CartService {
       }
     }
 
-    if (promo.isAvailed) {
+    if (promo.usage_count>=promo.promo.usage_limit) {
+      // cart.delivery_charge=40;
       return {
         statusCode: HttpStatus.BAD_REQUEST,
-        error: "Promo already used",
-        message: `Promo with name ${addPromoDto.name} has already been used by the user`,
+        error: "Promo already used maximum times" ,
+        message: `Promo with name ${addPromoDto.id} has already used maximum times by the user`,
       };
     }
-
-    // promo.isAvailed = true;
-    await this.promoRepository.save(promo);
-    
-    
-    cart.promoCode = promo.name;
-    cart.promoCodeId = promo.id;
-    cart.priceAfterPromoCode =Math.round(
-      cart.totalPrice - (cart.totalPrice * promo.discount) / 100);
-    if (!cart) {
-      throw new NotFoundException(`Cart not found for user with id ${userId}`);
-    }
+    cart.promoCodeId = +addPromoDto.id;
+    cart.promoApplied=true;
     await this.cartRepository.save(cart);
-
     return {
       statusCode: HttpStatus.OK,
       error: null,
-      message: `Promo ${addPromoDto.name} applied successfully`,
+      message: `Promo ${addPromoDto.id} applied successfully`,
     };
   }
 
   async findCartByUserId(user_id: number): Promise<CartItem | object> {
-    const cart :Cart= await this.cartRepository.findOne({
+    const cart = await this.cartRepository.findOne({
       where: { user: { id: user_id } },
       relations: ["items", "items.product"],
     });
@@ -218,22 +255,54 @@ export class CartService {
   }
 
   async updateCart(
-    cartItemId: number,
-    updateCartDto: UpdateCartDto
-  ): Promise<CartItem> {
-    const { quantity } = updateCartDto;
-    const cartItem = await this.cartItemRepository.findOne({
-      where: { id: cartItemId },
+    updateCartDto: UpdateCartDto, user_id: number
+  ): Promise<object> {
+    const { cartItemId, quantity } = updateCartDto;
+  
+    const cart = await this.cartRepository.findOne({
+      where: { user: { id: user_id } },
+      relations: ["items", "items.product"]
     });
-
+    
+    if (!cart) {
+      throw new NotFoundException("Cart not found");
+    }
+  
+    const cartItem = cart.items.find(item => item.id === cartItemId);
     if (!cartItem) {
       throw new NotFoundException("Cart item not found");
     }
-    cartItem.quantity = quantity;
-    return await this.cartItemRepository.save(cartItem);
+    if(updateCartDto.quantity<0){
+      return{
+        statusCode:HttpStatus.BAD_REQUEST,
+        error:null,
+        message:"Quantity must be positive"
+      }
+    }
+  
+    if (quantity <= 0) {
+      await this.cartItemRepository.remove(cartItem);
+    } else {
+      const product = await this.productRepository.findOne({
+        where: { id: cartItem.product.id }
+      });
+      if (product && quantity > product.stockQuantity) {
+        throw new BadRequestException("Not enough stock");
+      }
+      cartItem.quantity = quantity;
+      await this.cartItemRepository.save(cartItem);
+    }
+  
+    return {
+      statusCode: HttpStatus.OK,
+      error: null,
+      message: "Cart updated successfully",
+    };
   }
+  
 
   async deleteProductByCartId(cartId: number) {
     return this.cartItemRepository.delete(cartId);
+    
   }
 }

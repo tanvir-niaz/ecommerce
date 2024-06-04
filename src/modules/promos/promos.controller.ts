@@ -24,7 +24,7 @@ import { AddPromoDto } from "./dto/add-promo.dto";
 export class PromosController {
   constructor(private readonly promosService: PromosService) {}
 
-  @Post()
+  @Post('/admin')
   @UseGuards(JwtAdminAuthGuard)
   create(@Body() createPromoDto: CreatePromoDto) {
     return this.promosService.create(createPromoDto);
@@ -37,6 +37,7 @@ export class PromosController {
   }
 
   @Get()
+  @UseGuards(JwtAuthGuard)
   findAll() {
     return this.promosService.findAll();
   }
