@@ -127,7 +127,7 @@ export class PromosService {
       }
     }
     await this.promoRepository.delete(id);
-    await this.promoRepository.delete({name:promo.name});
+    await this.promoRepository.delete({id:promo.id});
     return {
       statusCode: HttpStatus.OK,
       error: null,

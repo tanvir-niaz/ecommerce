@@ -170,7 +170,7 @@ export class CartService {
       where: { id: userId },
       relations: ["user_promo_usage","user_promo_usage.promo"],
     });
-    console.log(user.user_promo_usage);
+    // console.log(user.user_promo_usage);
     const cart = await this.cartRepository.findOne({
       where: { user: { id: userId } },
       relations: ["items", "items.product"],
@@ -197,7 +197,7 @@ export class CartService {
       }
     }
     const promo = user.user_promo_usage.find((promo) => promo.id === +addPromoDto.id);
-    console.log("promo",promo);
+    // console.log("promo",promo);
 
     if (!promo ) {
       return {
