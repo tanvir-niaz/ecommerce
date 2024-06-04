@@ -103,6 +103,7 @@ export class CartService {
       relations: ["user_promo_usage","user_promo_usage.promo"],
     });
     // console.log(cart.priceAfterPromoCode)
+    
     if (!cart) {
       throw new NotFoundException("Cart not found");
     }
