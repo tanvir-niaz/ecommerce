@@ -91,13 +91,16 @@ export class CartService {
       where: { user: { id: userId } },
       relations: ["items", "items.product"],
     });
-    if(cart.items.length==0){
+    
+    if(cart?.items.length==0 || cart?.items===null){
+      
       return{
         statusCode:HttpStatus.OK,
         error:null,
         message:"No items in the cart"
       }
     }
+    
     const user = await this.userRepository.findOne({
       where: { id: userId },
       relations: ["user_promo_usage","user_promo_usage.promo"],
@@ -105,7 +108,11 @@ export class CartService {
     // console.log(cart.priceAfterPromoCode)
 
     if (!cart) {
-      throw new NotFoundException("Cart not found");
+      return{
+        statusCode:HttpStatus.OK,
+        data:[],
+        message:"No items in the cart"
+      }
     }
     
     let subTotal: number = 0;

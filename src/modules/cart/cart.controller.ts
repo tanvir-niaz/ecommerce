@@ -56,7 +56,7 @@ export class CartController {
   }
 
 
-  @Delete(":cartId")
+  @Delete(":cartItemId")
   @UseGuards(JwtAuthGuard)
   remove(@Param("cartId", ParseIntPipe) cartId: number) {
     return this.cartService.deleteProductByCartId(cartId);
