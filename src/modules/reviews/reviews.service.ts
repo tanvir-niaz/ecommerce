@@ -59,16 +59,6 @@ export class ReviewsService {
             id: review.user.id,
             name: review.user.name
         },
-        // product: {
-        //     id: review.product.id,
-        //     name: review.product.name,
-        //     description: review.product.description,
-        //     price: review.product.price,
-        //     discount: review.product.discount,
-        //     discountPrice: review.product.discountPrice,
-        //     stockQuantity: review.product.stockQuantity,
-        //     category: review.product.category
-        // }
     }));
 }
 
