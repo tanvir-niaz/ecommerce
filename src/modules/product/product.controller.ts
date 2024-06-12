@@ -7,7 +7,6 @@ import { JwtAdminAuthGuard } from 'src/guards/admin.guard';
 import { ApiBearerAuth, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { ProductQueryDto } from './dto/productQuery.dto';
 import { Throttle } from '@nestjs/throttler';
-import { title } from 'process';
 
 
 
