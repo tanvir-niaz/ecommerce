@@ -12,7 +12,7 @@ import { User } from "../entities/user.entity";
 export class userInterceptor implements NestInterceptor {
   intercept(
     context: ExecutionContext,
-    next: CallHandler<any>,
+    next: CallHandler<any>
   ): Observable<any> {
     // console.log("From the interceptor");
 
@@ -23,7 +23,7 @@ export class userInterceptor implements NestInterceptor {
         } else {
           return plainToInstance(User, data);
         }
-      }),
+      })
     );
   }
 }
