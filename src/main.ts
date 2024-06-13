@@ -6,7 +6,7 @@ import { OpenAPIObject, SwaggerModule } from "@nestjs/swagger";
 import { swaggerConfig } from "./config/swagger.config";
 import * as csurf from 'csurf';
 async function bootstrap() {
-  const app: INestApplication<any> = await NestFactory.create(AppModule);
+  const app: INestApplication<any> = await NestFactory.create(AppModule,{cors:true});
   app.useGlobalPipes(new ValidationPipe());
   const document: OpenAPIObject = SwaggerModule.createDocument(
     app,
