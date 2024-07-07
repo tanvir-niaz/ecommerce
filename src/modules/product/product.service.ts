@@ -70,8 +70,16 @@ export class ProductService {
     return [products, total];
   }
 
-  findOneProduct(id: number) {
-    return this.productRepository.find({ where: { id } });
+  async findOneProduct(id: number) {
+    const product=await  this.productRepository.find({ where: { id } });
+    if(!product || product.length==0){
+      return {
+        statusCode:HttpStatus.NOT_FOUND,
+        error:null,
+        message:`No product with Id ${id}`
+      }
+    }
+    return product;
   }
 
   async getAllDiscountProduct(): Promise<Product[] | object> {
